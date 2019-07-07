@@ -1,0 +1,4 @@
+# pip stuff
+build/*
+dist/*
+*.egg-info
