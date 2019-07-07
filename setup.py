@@ -7,7 +7,7 @@ preprocessing and especially can be used seamlessly with Object Detection API.""
 
 setup(
     name="vebits_api",
-    version="1.0.1",
+    version="1.0.2",
     author="Hoang Nghia Tuyen",
     author_email="hnt4499@gmail.com",
     url="https://github.com/hnt4499/vebits_api",
