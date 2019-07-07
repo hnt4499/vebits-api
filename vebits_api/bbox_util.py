@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-from tf_utils.others_util import assert_type, convert
-from tf_utils.xml_util import create_xml_file
+from vebits_api.others_util import assert_type, convert
+from vebits_api.xml_util import create_xml_file
 
 def get_bboxes_array(df, img_name=None):
     cols = ["xmin", "ymin", "xmax", "ymax"]

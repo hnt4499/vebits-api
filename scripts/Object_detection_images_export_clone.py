@@ -34,7 +34,7 @@ from data_collector_for_images import create_sequence
 sys.path.append("..")
 
 # Import utilites
-from tf_utils import bbox_util, detector_util, labelmap_util, xml_util, im_util
+from vebits_api import bbox_util, detector_util, labelmap_util, xml_util, im_util
 from utils import visualization_utils as vis_util
 
 

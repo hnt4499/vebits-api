@@ -29,7 +29,7 @@ os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   # see issue #152
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 # Import utilites
-from tf_utils import detector_util, labelmap_util, im_util
+from vebits_api import detector_util, labelmap_util, im_util
 from utils import visualization_utils as vis_util
 
 

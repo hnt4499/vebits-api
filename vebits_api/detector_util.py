@@ -8,7 +8,7 @@ from threading import Thread
 from datetime import datetime
 import cv2
 from utils import label_map_util
-from tf_utils import labelmap_util
+from vebits_api import labelmap_util
 from collections import defaultdict
 
 

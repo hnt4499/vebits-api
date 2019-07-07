@@ -10,7 +10,7 @@ import imgaug as ia
 import imgaug.augmenters as iaa
 import datetime
 from data_collect import BBox, create_xml_file
-from tf_utils import detector_util, bbox_util
+from vebits_api import detector_util, bbox_util
 
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   # see issue #152
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
