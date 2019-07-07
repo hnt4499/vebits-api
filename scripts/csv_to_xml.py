@@ -1,4 +1,4 @@
-from tf_utils.bbox_util import BBoxes
+from vebits_api.bbox_util import BBoxes
 import pandas as pd
 import argparse
 import sys

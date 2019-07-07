@@ -1,4 +1,4 @@
-from tf_utils import detector_util as detector_util
+from vebits_api import detector_util as detector_util
 import xml.etree.ElementTree as ET
 
 import cv2

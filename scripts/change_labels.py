@@ -3,7 +3,7 @@ import os
 import sys
 import argparse
 from tqdm import tqdm
-from tf_utils.xml_util import change_label_and_save
+from vebits_api.xml_util import change_label_and_save
 import glob
 
 
