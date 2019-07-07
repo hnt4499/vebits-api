@@ -20,6 +20,11 @@ setup(
         "": ["LICENSE", "README.md", "requirements.txt"],
     },
     license="MIT",
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+    ],
     description="High-level deep learning package for Object Detection API",
     long_description=long_description,
     keywords=["augmentation", "image", "deep learning", "neural network", "CNN",
