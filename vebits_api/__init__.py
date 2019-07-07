@@ -1,9 +1,7 @@
 from __future__ import absolute_import
 
-# this contains some deprecated classes/functions pointing to the new
-# classes/functions, hence always place the other imports below this so that
-# the deprecated stuff gets overwritten as much as possible
-from vebits_api.vebits_api import *
+
+# from vebits_api.vebits_api import *
 
 import vebits_api.bbox_util as bbox_util
 import vebits_api.detector_util as detector_util
