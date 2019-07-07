@@ -11,4 +11,4 @@ import vebits_api.other_util as other_util
 import vebits_api.vis_util as vis_util
 import vebits_api.xml_util as xml_util
 
-__version__ = "1.0.3"
+__version__ = "1.0.4"
