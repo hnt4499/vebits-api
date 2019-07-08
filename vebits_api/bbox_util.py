@@ -72,7 +72,7 @@ class BBox():
     def from_series(self, series):
         series = convert(series, pd.Series, pd.Series)
 
-        self.bbox = series.loc[["xmin", "ymin", "xmax", "ymax"]].to_numpy(dtype=np.int32)
+        self.bbox = series.loc[BBOX_COLS].to_numpy(dtype=np.int32)
         self._get_coord()
         self.label = series.loc["class"]
 
@@ -92,8 +92,7 @@ class BBox():
             self.label = label
 
     def to_series(self, filename, width, height):
-        cols = ["filename", "width", "height", "class",
-                "xmin", "ymin", "xmax", "ymax"]
+        cols = ["filename", "width", "height", "class"] + BBOX_COLS
         values = [filename, width, height, self.label,
                   self.xmin, self.ymin, self.xmax, self.ymax]
         return pd.Series(dict(zip(cols, values)))
