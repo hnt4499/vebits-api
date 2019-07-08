@@ -154,6 +154,29 @@ class BBox():
     def to_xyxy_array(self):
         return self.bbox
 
+    # Calculation functionalities
+    def area(self):
+        return _area(self.bbox)
+
+    def intersection(self, bbox):
+        if isinstance(bbox, BBox):
+            return _intersection(self.bbox, bbox.to_xyxy_array())
+        else:
+            return _intersection(self.bbox, bbox)
+
+    def union(self, bbox):
+        if isinstance(bbox, BBox):
+            return _union(self.bbox, bbox.to_xyxy_array())
+        else:
+            return _union(self.bbox, bbox)
+
+    def iou(self, bbox):
+        if isinstance(bbox, BBox):
+            return _iou(self.bbox, bbox.to_xyxy_array())
+        else:
+            return _iou(self.bbox, bbox)
+
+    # Funtions for getting attributes
     def get_label(self):
         return self.label
 
