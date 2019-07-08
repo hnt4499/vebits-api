@@ -28,7 +28,7 @@ def assert_type(objects, types, raise_error=False):
     for object in objects:
         if not any([isinstance(object, type) for type in types]):
             if raise_error:
-                raise ValueError("Invalid input data. List of allowed types: {}. "
+                raise ValueError("Invalid input data type. List of allowed types: {}. "
                                  "Got {} instead".format(str(types)[1:-1],
                                                           type(object)))
             else:
@@ -45,3 +45,12 @@ def convert(object, convert_function, expected_type):
                                                              expected_type))
     else:
         return object
+
+
+def raise_type_error(true_type, expected_type):
+    if len(expected_type) == 1:
+        raise TypeError("Invalid input data type. Expected {}. "
+                        "Got {} instead".format(expected_type, true_type))
+    else:
+        raise TypeError("Invalid input data type. Expected one of {}. "
+                        "Got {} instead".format(expected_type, true_type)) 

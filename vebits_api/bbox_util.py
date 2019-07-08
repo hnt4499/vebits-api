@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from vebits_api.others_util import assert_type, convert
+from vebits_api.others_util import raise_type_error, convert, assert_type
 from vebits_api.xml_util import create_xml_file
 
 BBOX_COLS = ["xmin", "ymin", "xmax", "ymax"]
@@ -50,6 +50,61 @@ def filter_boxes(boxes, scores, classes, cls, confidence_threshold, img_size):
     boxes[:, 2], boxes[:, 3] = boxes[:, 3].copy(), boxes[:, 2].copy()
 
     return fi, np.asarray(boxes, dtype=np.int)
+
+
+def _area(bbox):
+    return (bbox[2] - bbox[0]) * (bbox[3] - bbox[1])
+
+
+def area(bbox):
+    if isinstance(bbox, BBox):
+        return _area(bbox.to_xyxy_array())
+    else:
+        return _area(bbox)
+
+
+def _intersection(bbox_1, bbox_2):
+    # Determine the (x, y)-coordinates of the intersection rectangle
+    xA = max(bbox_1[0], bbox_2[0])
+    yA = max(bbox_1[1], bbox_2[1])
+    xB = min(bbox_1[2], bbox_2[2])
+    yB = min(bbox_1[3], bbox_2[3])
+
+    # Compute the area of intersection rectangle
+    inter = max(0, xB - xA) * max(0, yB - yA)
+    return inter
+
+
+def intersection(bbox_1, bbox_2):
+    if isinstance(bbox_1, BBox) and isinstance(bbox_2, BBox):
+        return _intersection(bbox_1.to_xyxy_array(), bbox_2.to_xyxy_array())
+    else:
+        return _intersection(bbox_1, bbox_2)
+
+
+def _union(bbox_1, bbox_2):
+    inter = intersection(bbox_1, bbox_2)
+    bbox_1_area = _area(bbox_1)
+    bbox_2_area = _area(bbox_2)
+    return bbox_1_area + bbox_2_area - inter
+
+
+def union(bbox_1, bbox_2):
+    if isinstance(bbox_1, BBox) and isinstance(bbox_2, BBox):
+        return _union(bbox_1.to_xyxy_array(), bbox_2.to_xyxy_array())
+    else:
+        return _union(bbox_1, bbox_2)
+
+
+def _iou(bbox_1, bbox_2):
+    return float(_intersection(bbox_1, bbox_2)) / float(_union(bbox_1, bbox_2))
+
+
+def iou(bbox_1, bbox_2):
+    if isinstance(bbox_1, BBox) and isinstance(bbox_2, BBox):
+        return _iou(bbox_1.to_xyxy_array(), bbox_2.to_xyxy_array())
+    else:
+        return _iou(bbox_1, bbox_2)
 
 
 class BBox():
