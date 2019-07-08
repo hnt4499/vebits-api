@@ -3,18 +3,28 @@ import pandas as pd
 from vebits_api.others_util import assert_type, convert
 from vebits_api.xml_util import create_xml_file
 
-def get_bboxes_array(df, img_name=None):
-    cols = ["xmin", "ymin", "xmax", "ymax"]
-    if img_name is not None:
-        return df[df.filename == img_name].loc[:, cols].to_numpy(dtype=np.int32)
+BBOX_COLS = ["xmin", "ymin", "xmax", "ymax"]
+
+
+def get_bboxes_array(data, bbox_cols=BBOX_COLS):
+    if isinstance(data, pd.DataFrame):
+        return df.loc[:, bbox_cols].to_numpy(dtype=np.int32)
+    elif isinstance(data, pd.Series):
+        return df.loc[bbox_cols].to_numpy(dtype=np.int32)
     else:
-        return df.loc[:, cols].to_numpy(dtype=np.int32)
+        raise TypeError("Invalid input data type. Expected {}, {}. Got {} "
+                        "instead".format(pd.DataFrame, pd.Series, type(data)))
 
 
-def get_bboxes_array_and_classes(df, img_name):
-    img_data = df[df.filename == img_name]
-    bbox = np.asarray(img_data.loc[:, ["class", "xmin", "ymin", "xmax", "ymax"]])
-    return bbox[:, 1:].astype(np.int), bbox[:, 0]
+def get_bboxes_array_and_classes(data, bbox_cols=BBOX_COLS):
+    bboxes = get_bboxes_array(data, bbox_cols)
+    if isinstance(data, pd.DataFrame):
+        return bboxes, data.loc[:, "class"]
+    elif isinstance(data, pd.Series):
+        return bboxes, data.loc["class"]
+    else:
+        raise TypeError("Invalid input data type. Expected {}, {}. Got {} "
+                        "instead".format(pd.DataFrame, pd.Series, type(data)))
 
 
 def filter_scores(scores, confidence_threshold):
