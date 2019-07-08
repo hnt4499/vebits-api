@@ -192,6 +192,10 @@ class BBox():
     def get_ymax(self):
         return self.ymax
 
+    # Funtions for setting attributes
+    def set_label(self, label):
+        self.label = label
+
 
 class BBoxes():
     def __init__(self, df=None, bboxes_list=None,
