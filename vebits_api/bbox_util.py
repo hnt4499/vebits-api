@@ -72,9 +72,8 @@ class BBox():
     def from_series(self, series):
         series = convert(series, pd.Series, pd.Series)
 
-        self.bbox = series.loc[BBOX_COLS].to_numpy(dtype=np.int32)
+        self.bbox, self.label = get_bboxes_array_and_classes(series)
         self._get_coord()
-        self.label = series.loc["class"]
 
     def from_xyxy_array(self, array, label=None):
         array = convert(array,
