@@ -118,6 +118,7 @@ class BBox():
             self.bbox = None
             self.label = label
 
+    # Functions for reading data
     def _get_coord(self):
         self.xmin = self.bbox[0]
         self.ymin = self.bbox[1]
@@ -145,6 +146,7 @@ class BBox():
         if label is not None:
             self.label = label
 
+    # Functions for outputting data
     def to_series(self, filename, width, height):
         cols = ["filename", "width", "height", "class"] + BBOX_COLS
         values = [filename, width, height, self.label,
@@ -154,7 +156,7 @@ class BBox():
     def to_xyxy_array(self):
         return self.bbox
 
-    # Calculation functionalities
+    # Calculation utilities
     def area(self):
         return _area(self.bbox)
 
