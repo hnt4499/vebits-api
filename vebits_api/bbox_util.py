@@ -12,8 +12,7 @@ def get_bboxes_array(data, bbox_cols=BBOX_COLS):
     elif isinstance(data, pd.Series):
         return df.loc[bbox_cols].to_numpy(dtype=np.int32)
     else:
-        raise TypeError("Invalid input data type. Expected {}, {}. Got {} "
-                        "instead".format(pd.DataFrame, pd.Series, type(data)))
+        raise_type_error(type(data), [pd.DataFrame, pd.Series])
 
 
 def get_bboxes_array_and_classes(data, bbox_cols=BBOX_COLS):
@@ -23,8 +22,7 @@ def get_bboxes_array_and_classes(data, bbox_cols=BBOX_COLS):
     elif isinstance(data, pd.Series):
         return bboxes, data.loc["class"]
     else:
-        raise TypeError("Invalid input data type. Expected {}, {}. Got {} "
-                        "instead".format(pd.DataFrame, pd.Series, type(data)))
+        raise_type_error(type(data), [pd.DataFrame, pd.Series])
 
 
 def filter_scores(scores, confidence_threshold):

@@ -1,10 +1,12 @@
 import cv2
+from vebits_api.bbox_util import BBox, BBoxes
+from vebits_api.others_util import convert, raise_type_error
 
 FONT = cv2.FONT_HERSHEY_SIMPLEX
 colors = [(0, 255, 0), (255, 0, 0), (0, 0, 255), (100, 100, 100), (0, 255, 0)]
 
 
-def _draw_box_on_image(img, box, label, color=None):
+def _draw_box_on_image(img, box, label, color):
     # Use default color if `color` is not specified.
     if color is None:
         color = colors[0]
@@ -14,6 +16,18 @@ def _draw_box_on_image(img, box, label, color=None):
     if label is not None:
         cv2.putText(img, label, p1, FONT, 0.75, color, 2, cv2.LINE_AA)
     return img
+
+
+def draw_box_on_image(img, box, label=None, color=None):
+    if isinstance(box, BBox):
+        return _draw_box_on_image(img, box.to_xyxy_array(), label, color)
+    else:
+        try:
+            box = convert(box,
+                          lambda x: np.asarray(x, dtype=np.int32),
+                          np.ndarray)
+        except:
+            raise TypeError("")
 
 
 def _draw_boxes_on_image(img, boxes, labels=None, labelmap_dict=None):

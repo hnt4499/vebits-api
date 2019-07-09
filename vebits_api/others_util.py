@@ -48,9 +48,9 @@ def convert(object, convert_function, expected_type):
 
 
 def raise_type_error(true_type, expected_type):
-    if len(expected_type) == 1:
+    if not isinstance(expected_type, list) or len(expected_type) == 1:
         raise TypeError("Invalid input data type. Expected {}. "
                         "Got {} instead".format(expected_type, true_type))
     else:
-        raise TypeError("Invalid input data type. Expected one of {}. "
-                        "Got {} instead".format(expected_type, true_type)) 
+        raise TypeError("Invalid input data type. Expected one of the following:"
+                        " {}. Got {} instead".format(expected_type, true_type))
