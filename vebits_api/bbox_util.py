@@ -198,6 +198,11 @@ class BBox():
     def set_label(self, label):
         self.label = label
 
+    # Other utilities
+    def draw_on_image(self, img):
+        if self.label is None:
+
+
 
 class BBoxes():
     def __init__(self, df=None, bboxes_list=None,
