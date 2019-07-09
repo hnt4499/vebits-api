@@ -26,8 +26,13 @@ def draw_box_on_image(img, box, label=None, color=None):
             box = convert(box,
                           lambda x: np.asarray(x, dtype=np.int32),
                           np.ndarray)
+            if box.shape != (4,):
+                raise ValueError("Input bounding box must be of shape (4,), "
+                                 "got shape {} instead".format(box.shape))
+            else:
+                return _draw_box_on_image(img, box, label, color)
         except:
-            raise TypeError("")
+            raise_type_error(type(box), [BBox, np.ndarray])
 
 
 def _draw_boxes_on_image(img, boxes, labels=None, labelmap_dict=None):
