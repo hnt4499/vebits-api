@@ -35,20 +35,62 @@ def draw_box_on_image(img, box, label=None, color=None):
             raise_type_error(type(box), [BBox, np.ndarray])
 
 
-def _draw_boxes_on_image(img, boxes, labels=None, labelmap_dict=None):
+def _draw_boxes_on_image(img, boxes, labels, labelmap_dict):
     for i in range(boxes.shape[0]):
-        box = boxes[i]
-        cl = classes[i]
-        p1 = (int(box[0]), int(box[1]))
-        p2 = (int(box[2]), int(box[3]))
-
-        if classes is not None:
-            cl_num = labelmap_dict[cl]
-            cv2.putText(img, cl, p1, FONT, 0.75, colors[cl_num], 2, cv2.LINE_AA)
-            cv2.rectangle(img, p1, p2, colors[cl_num], 3, 1)
+        if labels is None:
+            img = _draw_box_on_image(img, boxes[i], None, None)
         else:
-            cv2.rectangle(img, p1, p2, colors[0], 3, 1)
+            label = labels[i]
+            img = _draw_box_on_image(img, boxes[i], label, labelmap_dict[label])
     return img
+
+
+def draw_boxes_on_image(img, boxes, labels, labelmap_dict):
+    """Short summary.
+
+    Parameters
+    ----------
+    img : ndarray
+        Input image.
+    boxes : ndarray-like or BBoxes
+        If `ndarray`, it must has shape (n ,4) where n is the number of
+        bounding boxes.
+    labels : ndarray-like
+        If set to None:
+            - If `boxes` is of class `BBoxes`, internal bounding boxes
+              inferred from `boxes` are used.
+            - If `boxes` is `ndarray`-like, no label is used.
+        If explicitly set, `label` from `BBoxes` will not be used.
+    labelmap_dict : dict
+        A dictionary mapping labels with its index.
+
+    Returns
+    -------
+    img
+        Return annotated image.
+
+    """
+    if isinstance(boxes, BBoxes):
+        boxes, labels_in = boxes.to_xyxy_array_and_label()
+        # If `labels` is not explicitly set
+        if labels is None:
+            return _draw_boxes_on_image(img, boxes.to_xyxy_array(),
+                                        labels_in, labelmap_dict)
+        else:
+            return _draw_boxes_on_image(img, boxes.to_xyxy_array(),
+                                        labels, labelmap_dict)
+    else:
+        try:
+            boxes = convert(boxes,
+                          lambda x: np.asarray(x, dtype=np.int32),
+                          np.ndarray)
+            if boxes.shape[1] != 4:
+                raise ValueError("Input bounding box must be of shape (n, 4), "
+                                 "got shape {} instead".format(boxes.shape))
+            else:
+                return _draw_boxes_on_image(img, boxes, labels, labelmap_dict)
+        except:
+            raise_type_error(type(boxes), [BBoxes, np.ndarray])
 
 
 def draw_number(img, number, loc=None):
