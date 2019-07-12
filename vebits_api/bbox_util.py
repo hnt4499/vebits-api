@@ -11,6 +11,8 @@ def get_bboxes_array(data, bbox_cols=BBOX_COLS):
         return df.loc[:, bbox_cols].to_numpy(dtype=np.int32)
     elif isinstance(data, pd.Series):
         return df.loc[bbox_cols].to_numpy(dtype=np.int32)
+    elif isinstance(data, BBox) or isinstance(data, BBoxes):
+        return data.to_xyxy_array()
     else:
         raise_type_error(type(data), [pd.DataFrame, pd.Series])
 
@@ -245,6 +247,8 @@ class BBoxes():
         self.filename = filename
         self.width = width
         self.height = height
+        # By default, dataframe is the main source of data
+        self.to_dataframe()
 
     def to_dataframe(self):
         if self.df is None and self.bboxes_list is None:
@@ -275,3 +279,17 @@ class BBoxes():
         self.to_bboxes_list()
         create_xml_file(img_path, self.width, self.height,
                         self.bboxes_list, xml_path)
+
+    def to_xyxy_array(self):
+        # Sanity check
+        if self.df is None and self.bboxes_list is None:
+            raise ValueError("Please provide either dataframe of "
+                             "bounding boxes or list of BBox objects")
+        return self.df.loc[:, BBOX_COLS].to_numpy(dtype=np.int32)
+
+    def to_xyxy_array_and_classes(self):
+        # Sanity check
+        if self.df is None and self.bboxes_list is None:
+            raise ValueError("Please provide either dataframe of "
+                             "bounding boxes or list of BBox objects")
+        return self.df.loc[:, BBOX_COLS].to_numpy(dtype=np.int32), self.df.loc[:, "class"].to_numpy()
