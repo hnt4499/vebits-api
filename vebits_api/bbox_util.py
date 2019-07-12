@@ -14,17 +14,19 @@ def get_bboxes_array(data, bbox_cols=BBOX_COLS):
     elif isinstance(data, BBox) or isinstance(data, BBoxes):
         return data.to_xyxy_array()
     else:
-        raise_type_error(type(data), [pd.DataFrame, pd.Series])
+        raise_type_error(type(data), [pd.DataFrame, pd.Series, BBox, BBoxes])
 
 
-def get_bboxes_array_and_classes(data, bbox_cols=BBOX_COLS):
+def get_bboxes_array_and_class(data, bbox_cols=BBOX_COLS):
     bboxes = get_bboxes_array(data, bbox_cols)
     if isinstance(data, pd.DataFrame):
         return bboxes, data.loc[:, "class"]
     elif isinstance(data, pd.Series):
         return bboxes, data.loc["class"]
+    elif isinstance(data, BBox) or isinstance(data, BBoxes):
+        return data.to_xyxy_array_and_class()
     else:
-        raise_type_error(type(data), [pd.DataFrame, pd.Series])
+        raise_type_error(type(data), [pd.DataFrame, pd.Series, BBox, BBoxes])
 
 
 def filter_scores(scores, confidence_threshold):
@@ -114,6 +116,9 @@ class BBox():
             self.label = label
         elif bbox_series is not None:
             self.from_series(bbox_series)
+            # In case `label` is set explicitly
+            if label is not None:
+                self.label = label
         else:
             self.bbox = None
             self.label = label
@@ -155,6 +160,9 @@ class BBox():
 
     def to_xyxy_array(self):
         return self.bbox
+
+    def to_xyxy_array_and_class(self):
+        return self.bbox, self.label
 
     # Calculation utilities
     def area(self):
@@ -287,7 +295,7 @@ class BBoxes():
                              "bounding boxes or list of BBox objects")
         return self.df.loc[:, BBOX_COLS].to_numpy(dtype=np.int32)
 
-    def to_xyxy_array_and_classes(self):
+    def to_xyxy_array_and_class(self):
         # Sanity check
         if self.df is None and self.bboxes_list is None:
             raise ValueError("Please provide either dataframe of "
