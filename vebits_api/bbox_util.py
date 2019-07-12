@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from vebits_api.others_util import assert_type, convert
+from vebits_api.others_util import raise_type_error, convert, assert_type
 from vebits_api.xml_util import create_xml_file
 
 BBOX_COLS = ["xmin", "ymin", "xmax", "ymax"]
@@ -11,20 +11,22 @@ def get_bboxes_array(data, bbox_cols=BBOX_COLS):
         return df.loc[:, bbox_cols].to_numpy(dtype=np.int32)
     elif isinstance(data, pd.Series):
         return df.loc[bbox_cols].to_numpy(dtype=np.int32)
+    elif isinstance(data, BBox) or isinstance(data, BBoxes):
+        return data.to_xyxy_array()
     else:
-        raise TypeError("Invalid input data type. Expected {}, {}. Got {} "
-                        "instead".format(pd.DataFrame, pd.Series, type(data)))
+        raise_type_error(type(data), [pd.DataFrame, pd.Series, BBox, BBoxes])
 
 
-def get_bboxes_array_and_classes(data, bbox_cols=BBOX_COLS):
+def get_bboxes_array_and_label(data, bbox_cols=BBOX_COLS):
     bboxes = get_bboxes_array(data, bbox_cols)
     if isinstance(data, pd.DataFrame):
         return bboxes, data.loc[:, "class"]
     elif isinstance(data, pd.Series):
         return bboxes, data.loc["class"]
+    elif isinstance(data, BBox) or isinstance(data, BBoxes):
+        return data.to_xyxy_array_and_label()
     else:
-        raise TypeError("Invalid input data type. Expected {}, {}. Got {} "
-                        "instead".format(pd.DataFrame, pd.Series, type(data)))
+        raise_type_error(type(data), [pd.DataFrame, pd.Series, BBox, BBoxes])
 
 
 def filter_scores(scores, confidence_threshold):
@@ -52,6 +54,61 @@ def filter_boxes(boxes, scores, classes, cls, confidence_threshold, img_size):
     return fi, np.asarray(boxes, dtype=np.int)
 
 
+def _area(bbox):
+    return (bbox[2] - bbox[0]) * (bbox[3] - bbox[1])
+
+
+def area(bbox):
+    if isinstance(bbox, BBox):
+        return _area(bbox.to_xyxy_array())
+    else:
+        return _area(bbox)
+
+
+def _intersection(bbox_1, bbox_2):
+    # Determine the (x, y)-coordinates of the intersection rectangle
+    xA = max(bbox_1[0], bbox_2[0])
+    yA = max(bbox_1[1], bbox_2[1])
+    xB = min(bbox_1[2], bbox_2[2])
+    yB = min(bbox_1[3], bbox_2[3])
+
+    # Compute the area of intersection rectangle
+    inter = max(0, xB - xA) * max(0, yB - yA)
+    return inter
+
+
+def intersection(bbox_1, bbox_2):
+    if isinstance(bbox_1, BBox) and isinstance(bbox_2, BBox):
+        return _intersection(bbox_1.to_xyxy_array(), bbox_2.to_xyxy_array())
+    else:
+        return _intersection(bbox_1, bbox_2)
+
+
+def _union(bbox_1, bbox_2):
+    inter = intersection(bbox_1, bbox_2)
+    bbox_1_area = _area(bbox_1)
+    bbox_2_area = _area(bbox_2)
+    return bbox_1_area + bbox_2_area - inter
+
+
+def union(bbox_1, bbox_2):
+    if isinstance(bbox_1, BBox) and isinstance(bbox_2, BBox):
+        return _union(bbox_1.to_xyxy_array(), bbox_2.to_xyxy_array())
+    else:
+        return _union(bbox_1, bbox_2)
+
+
+def _iou(bbox_1, bbox_2):
+    return float(_intersection(bbox_1, bbox_2)) / float(_union(bbox_1, bbox_2))
+
+
+def iou(bbox_1, bbox_2):
+    if isinstance(bbox_1, BBox) and isinstance(bbox_2, BBox):
+        return _iou(bbox_1.to_xyxy_array(), bbox_2.to_xyxy_array())
+    else:
+        return _iou(bbox_1, bbox_2)
+
+
 class BBox():
     def __init__(self, label=None, bbox_array=None, bbox_series=None):
         if bbox_array is not None:
@@ -59,10 +116,14 @@ class BBox():
             self.label = label
         elif bbox_series is not None:
             self.from_series(bbox_series)
+            # In case `label` is set explicitly
+            if label is not None:
+                self.label = label
         else:
             self.bbox = None
             self.label = label
 
+    # Functions for reading data
     def _get_coord(self):
         self.xmin = self.bbox[0]
         self.ymin = self.bbox[1]
@@ -72,9 +133,8 @@ class BBox():
     def from_series(self, series):
         series = convert(series, pd.Series, pd.Series)
 
-        self.bbox = series.loc[["xmin", "ymin", "xmax", "ymax"]].to_numpy(dtype=np.int32)
+        self.bbox, self.label = get_bboxes_array_and_label(series)
         self._get_coord()
-        self.label = series.loc["class"]
 
     def from_xyxy_array(self, array, label=None):
         array = convert(array,
@@ -91,9 +151,9 @@ class BBox():
         if label is not None:
             self.label = label
 
+    # Functions for outputting data
     def to_series(self, filename, width, height):
-        cols = ["filename", "width", "height", "class",
-                "xmin", "ymin", "xmax", "ymax"]
+        cols = ["filename", "width", "height", "class"] + BBOX_COLS
         values = [filename, width, height, self.label,
                   self.xmin, self.ymin, self.xmax, self.ymax]
         return pd.Series(dict(zip(cols, values)))
@@ -101,6 +161,32 @@ class BBox():
     def to_xyxy_array(self):
         return self.bbox
 
+    def to_xyxy_array_and_label(self):
+        return self.bbox, self.label
+
+    # Calculation utilities
+    def area(self):
+        return _area(self.bbox)
+
+    def intersection(self, bbox):
+        if isinstance(bbox, BBox):
+            return _intersection(self.bbox, bbox.to_xyxy_array())
+        else:
+            return _intersection(self.bbox, bbox)
+
+    def union(self, bbox):
+        if isinstance(bbox, BBox):
+            return _union(self.bbox, bbox.to_xyxy_array())
+        else:
+            return _union(self.bbox, bbox)
+
+    def iou(self, bbox):
+        if isinstance(bbox, BBox):
+            return _iou(self.bbox, bbox.to_xyxy_array())
+        else:
+            return _iou(self.bbox, bbox)
+
+    # Funtions for getting attributes
     def get_label(self):
         return self.label
 
@@ -115,6 +201,15 @@ class BBox():
 
     def get_ymax(self):
         return self.ymax
+
+    # Funtions for setting attributes
+    def set_label(self, label):
+        self.label = label
+
+    # Other utilities
+    def draw_on_image(self, img):
+        if self.label is None:
+            pass
 
 
 class BBoxes():
@@ -160,6 +255,8 @@ class BBoxes():
         self.filename = filename
         self.width = width
         self.height = height
+        # By default, dataframe is the main source of data
+        self.to_dataframe()
 
     def to_dataframe(self):
         if self.df is None and self.bboxes_list is None:
@@ -190,3 +287,17 @@ class BBoxes():
         self.to_bboxes_list()
         create_xml_file(img_path, self.width, self.height,
                         self.bboxes_list, xml_path)
+
+    def to_xyxy_array(self):
+        # Sanity check
+        if self.df is None and self.bboxes_list is None:
+            raise ValueError("Please provide either dataframe of "
+                             "bounding boxes or list of BBox objects")
+        return self.df.loc[:, BBOX_COLS].to_numpy(dtype=np.int32)
+
+    def to_xyxy_array_and_label(self):
+        # Sanity check
+        if self.df is None and self.bboxes_list is None:
+            raise ValueError("Please provide either dataframe of "
+                             "bounding boxes or list of BBox objects")
+        return self.df.loc[:, BBOX_COLS].to_numpy(dtype=np.int32), self.df.loc[:, "class"].to_numpy()
