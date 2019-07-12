@@ -17,14 +17,14 @@ def get_bboxes_array(data, bbox_cols=BBOX_COLS):
         raise_type_error(type(data), [pd.DataFrame, pd.Series, BBox, BBoxes])
 
 
-def get_bboxes_array_and_class(data, bbox_cols=BBOX_COLS):
+def get_bboxes_array_and_label(data, bbox_cols=BBOX_COLS):
     bboxes = get_bboxes_array(data, bbox_cols)
     if isinstance(data, pd.DataFrame):
         return bboxes, data.loc[:, "class"]
     elif isinstance(data, pd.Series):
         return bboxes, data.loc["class"]
     elif isinstance(data, BBox) or isinstance(data, BBoxes):
-        return data.to_xyxy_array_and_class()
+        return data.to_xyxy_array_and_label()
     else:
         raise_type_error(type(data), [pd.DataFrame, pd.Series, BBox, BBoxes])
 
@@ -133,7 +133,7 @@ class BBox():
     def from_series(self, series):
         series = convert(series, pd.Series, pd.Series)
 
-        self.bbox, self.label = get_bboxes_array_and_classes(series)
+        self.bbox, self.label = get_bboxes_array_and_label(series)
         self._get_coord()
 
     def from_xyxy_array(self, array, label=None):
@@ -161,7 +161,7 @@ class BBox():
     def to_xyxy_array(self):
         return self.bbox
 
-    def to_xyxy_array_and_class(self):
+    def to_xyxy_array_and_label(self):
         return self.bbox, self.label
 
     # Calculation utilities
@@ -295,7 +295,7 @@ class BBoxes():
                              "bounding boxes or list of BBox objects")
         return self.df.loc[:, BBOX_COLS].to_numpy(dtype=np.int32)
 
-    def to_xyxy_array_and_class(self):
+    def to_xyxy_array_and_label(self):
         # Sanity check
         if self.df is None and self.bboxes_list is None:
             raise ValueError("Please provide either dataframe of "
