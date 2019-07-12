@@ -28,7 +28,7 @@ def main(args):
             continue
 
         img = cv2.imread(img_path)
-        bboxes, classes = bbox_util.get_bboxes_array_and_classes(df, img_name)
+        bboxes, classes = bbox_util.get_bboxes_array_and_class(df, img_name)
         vis_util.draw_boxes_on_image(img, bboxes, classes, labelmap_dict)
         vis_util.draw_number(img, index)
         cv2.imshow("Inspecting Dataset", img)
