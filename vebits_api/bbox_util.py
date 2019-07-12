@@ -209,7 +209,7 @@ class BBox():
     # Other utilities
     def draw_on_image(self, img):
         if self.label is None:
-
+            pass
 
 
 class BBoxes():
