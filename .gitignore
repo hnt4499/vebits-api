@@ -2,7 +2,7 @@
 build/*
 dist/*
 *.egg-info
-
-*/__pycache__
-*/__pycache__/*
-*.pyc
+# Cache stuff
+vebits_api/__pycache__
+vebits_api/__pycache__/*
+**/*.pyc
