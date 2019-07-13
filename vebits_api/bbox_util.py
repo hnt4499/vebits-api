@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
-from vebits_api.others_util import raise_type_error, convert, assert_type
-from vebits_api.xml_util import create_xml_file
+
+from .others_util import raise_type_error, convert, assert_type
+from .xml_util import create_xml_file
 
 BBOX_COLS = ["xmin", "ymin", "xmax", "ymax"]
 

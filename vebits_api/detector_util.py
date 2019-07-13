@@ -1,14 +1,16 @@
 # Utilities for object detector.
 
-import numpy as np
-import sys
-import tensorflow as tf
 import os
+import sys
 from threading import Thread
 from datetime import datetime
-import cv2
-from vebits_api import labelmap_util
 from collections import defaultdict
+
+import numpy as np
+import tensorflow as tf
+import cv2
+
+from . import labelmap_util
 
 
 # Load a frozen infrerence graph into memory

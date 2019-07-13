@@ -1,6 +1,7 @@
 import cv2
-from vebits_api.bbox_util import BBox, BBoxes
-from vebits_api.others_util import convert, raise_type_error
+
+from .bbox_util import BBox, BBoxes
+from .others_util import convert, raise_type_error
 
 FONT = cv2.FONT_HERSHEY_SIMPLEX
 colors = [(0, 255, 0), (255, 0, 0), (0, 0, 255), (100, 100, 100), (0, 255, 0)]
