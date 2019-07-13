@@ -20,7 +20,11 @@ def _draw_box_on_image(img, box, label, color):
 
 def draw_box_on_image(img, box, label=None, color=None):
     if isinstance(box, BBox):
-        return _draw_box_on_image(img, box.to_xyxy_array(), label, color)
+        if label is None:
+            return _draw_box_on_image(img, box.to_xyxy_array(), label, color)
+        else:
+            return _draw_box_on_image(img, box.to_xyxy_array(),
+                                      box.get_label(), color)
     else:
         try:
             box = convert(box,
