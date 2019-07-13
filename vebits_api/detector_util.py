@@ -1,14 +1,16 @@
 # Utilities for object detector.
 
-import numpy as np
-import sys
-import tensorflow as tf
 import os
+import sys
 from threading import Thread
 from datetime import datetime
-import cv2
-from vebits_api import labelmap_util
 from collections import defaultdict
+
+import numpy as np
+import tensorflow as tf
+import cv2
+
+from . import labelmap_util
 
 
 # Load a frozen infrerence graph into memory
@@ -42,10 +44,13 @@ def load_inference_graph(inference_graph_path):
     return tensors
 
 
-def load_tensors(inference_graph_path, labelmap_path, num_classes):
+def load_tensors(inference_graph_path, labelmap_path, num_classes=None):
     tensors = load_inference_graph(inference_graph_path)
     labelmap_dict = labelmap_util.get_label_map_dict(labelmap_path)
     labelmap_dict_inverse = labelmap_util.get_label_map_dict_inverse(labelmap_dict)
+    # If `num_classes` is not specified, it will be inferred from labelmap.
+    if num_classes is None:
+        num_classes = len(labelmap_dict)
     category_index = labelmap_util.load_category_index(labelmap_path, num_classes)
 
     tensors["labelmap_dict"] = labelmap_dict

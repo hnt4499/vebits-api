@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
-from vebits_api.others_util import raise_type_error, convert, assert_type
-from vebits_api.xml_util import create_xml_file
+
+from .others_util import raise_type_error, convert, assert_type
+from .xml_util import create_xml_file
 
 BBOX_COLS = ["xmin", "ymin", "xmax", "ymax"]
 
@@ -29,29 +30,39 @@ def get_bboxes_array_and_label(data, bbox_cols=BBOX_COLS):
         raise_type_error(type(data), [pd.DataFrame, pd.Series, BBox, BBoxes])
 
 
-def filter_scores(scores, confidence_threshold):
+def scores_mask(scores, confidence_threshold):
     return scores > confidence_threshold
 
 
-def filter_class(classes, classes_to_keep):
-    pass
+def classes_mask(classes, classes_to_keep):
+    return np.isin(classes, classes_to_keep)
 
-def filter_boxes(boxes, scores, classes, cls, confidence_threshold, img_size):
-    height, width = img_size
 
-    if cls == "all":
-        fi = (scores > confidence_threshold)
+def get_mask(boxes, scores, classes,
+             classes_to_keep, confidence_threshold):
+    score_mask = scores_mask(scores, confidence_threshold)
+    if classes_to_keep != "all" and classes_to_keep is not None:
+        class_mask = classes_mask(classes, cls)
+        return score_mask * class_mask
     else:
-        class_filter = np.isin(classes, cls)
-        fi = (scores > confidence_threshold) * class_filter
+        return score_mask
 
-    boxes = boxes[fi]
 
+def filter_boxes(boxes, scores, classes, classes_to_keep,
+                 confidence_threshold, img_size):
+    mask = get_mask(boxes, scores, classes, classes_to_keep, confidence_threshold)
+    boxes = boxes[mask]
+    scores = scores[mask]
+    classes = classes[mask]
+    # Because `boxes` is of floating points with relative to image size,
+    # we need to convert it back to coordinates.
+    height, width = img_size
     boxes = boxes * [height, width, height, width]
-    boxes[:, 0], boxes[:, 1] = boxes[:, 1].copy(), boxes[:, 0].copy()
-    boxes[:, 2], boxes[:, 3] = boxes[:, 3].copy(), boxes[:, 2].copy()
-
-    return fi, np.asarray(boxes, dtype=np.int)
+    # Now the boxes is `ymin, xmin, ymax, xmax`.
+    boxes = np.asarray(boxes[:, [1, 0, 3, 2]], dtype=np.int32)
+    # Ensure type of classes is correct
+    classes = classes.astype(np.int32)
+    return boxes, scores, classes
 
 
 def _area(bbox):
