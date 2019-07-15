@@ -1,5 +1,8 @@
 # Utilities for object detector.
 
+from . import bbox_util
+from . import im_util
+from . import labelmap_util
 import os
 import sys
 from threading import Thread
@@ -14,9 +17,6 @@ from darkflow.net.build import TFNet
 # Multiprocessing
 from multiprocessing.pool import ThreadPool
 pool = ThreadPool()
-
-from . import labelmap_util
-from . import im_util
 
 
 # Load Tensorflow inference graph into memory
@@ -34,7 +34,8 @@ def load_inference_graph_tf(inference_graph_path):
     image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
     detection_boxes = detection_graph.get_tensor_by_name('detection_boxes:0')
     detection_scores = detection_graph.get_tensor_by_name('detection_scores:0')
-    detection_classes = detection_graph.get_tensor_by_name('detection_classes:0')
+    detection_classes = detection_graph.get_tensor_by_name(
+        'detection_classes:0')
     num_detections = detection_graph.get_tensor_by_name('num_detections:0')
 
     tensors = {
@@ -79,6 +80,8 @@ def load_inference_graph_yolo(inference_graph_path, meta_path,
     return {"yolo_net": yolo_net}
 
 # Load a frozen infrerence graph into memory
+
+
 def load_inference_graph(inference_graph_path, meta_path=None,
                          gpu_usage=0.95, confidence_threshold=0.5):
     """Interface to load either Tensorflow or Darknet's YOLO inference graph
@@ -139,11 +142,13 @@ def load_tensors(inference_graph_path, labelmap_path,
     tensors = load_inference_graph(inference_graph_path, meta_path,
                                    gpu_usage, confidence_threshold)
     labelmap_dict = labelmap_util.get_label_map_dict(labelmap_path)
-    labelmap_dict_inverse = labelmap_util.get_label_map_dict_inverse(labelmap_dict)
+    labelmap_dict_inverse = labelmap_util.get_label_map_dict_inverse(
+        labelmap_dict)
     # If `num_classes` is not specified, it will be inferred from labelmap.
     if num_classes is None:
         num_classes = len(labelmap_dict)
-    category_index = labelmap_util.load_category_index(labelmap_path, num_classes)
+    category_index = labelmap_util.load_category_index(
+        labelmap_path, num_classes)
 
     tensors["labelmap_dict"] = labelmap_dict
     tensors["labelmap_dict_inverse"] = labelmap_dict_inverse
@@ -200,25 +205,50 @@ def return_predict(net, img):
     This function was modified from `darkflow.net.flow.return_predict`
     to work appropriately with this API.
     """
-    h, w, _ = img.shape
-    img = im_util.resize_padding(img, net.meta["inp_size"][:2])
+    height_orig, width_orig, _ = img.shape
+    height, width = net.meta["inp_size"][:2]
+    img = im_util.resize_padding(img, (height, width))
     img = net.framework.resize_input(img)
     this_inp = np.expand_dims(img, 0)
-    feed_dict = {net.inp : this_inp}
+    feed_dict = {net.inp: this_inp}
 
     out = net.sess.run(net.out, feed_dict)[0]
     boxes = net.framework.findboxes(out)
     threshold = net.FLAGS.threshold
     boxes_out, scores, classes = [], [], []
     for box in boxes:
-        tmpBox = net.framework.process_box(box, h, w, threshold)
+        tmpBox = process_box(box, img_size_feed=(height, width),
+                             img_size_orig=(height_orig, width_orig),
+                             threshold=threshold)
         if tmpBox is None:
             continue
-        boxes_out.append([tmpBox[0], tmpBox[2], tmpBox[1], tmpBox[3]])
-        scores.append(tmpBox[6])
+        boxes_out.append(tmpBox[0])
+        scores.append(tmpBox[1])
         # This API uses class index starting from 1
-        classes.append(tmpBox[5] + 1)
+        classes.append(tmpBox[2] + 1)
     return np.array(boxes_out), np.array(scores), np.array(classes)
+
+
+def process_box(box, img_size_feed, img_size_orig, threshold):
+    """
+    This function is used specifically for YOLO detections using Darkflow.
+    This was implemented to be compatible with `resize_padding` function, since
+    using this function to resize image seems to improve the performance.
+    """
+    height, width = img_size_feed
+    max_indx = np.argmax(box.probs)
+    max_prob = box.probs[max_indx]
+
+    if max_prob > threshold:
+        left = int((box.x - box.w / 2.) * width)
+        right = int((box.x + box.w / 2.) * width)
+        top = int((box.y - box.h / 2.) * height)
+        bot = int((box.y + box.h / 2.) * height)
+        box_out = bbox_util.boxes_padding_inverse([left, top, right, bot],
+                                                  img_size=img_size_feed,
+                                                  img_size_orig=img_size_orig)
+        return (box_out, max_prob, max_indx)
+    return None
 
 
 def detect_objects(img, tensors):
