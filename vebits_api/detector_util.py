@@ -349,6 +349,34 @@ class YOLOModel():
                                    self.tensors["labelmap_dict"])
 
 
+class Model():
+    """
+    This model wraps up TFModel and YOLOModel for the sake of simplicity.
+    """
+    def __init__(self, inference_graph_path, labelmap_path,
+                 meta_path, confidence_threshold=0.5,
+                 class_to_be_detected="all", gpu_usage=0.95):
+        """
+        If `meta_path` is specified, YOLOModel will be loaded. Otherwise,
+        Tensorflow Object Detection API model will be loaded.
+        """
+        if meta_path is None:
+            TFModel.__init__(self, inference_graph_path, labelmap_path,
+                             confidence_threshold, class_to_be_detected)
+            self.model = TFModel
+        else:
+            YOLOModel.__init__(self, inference_graph_path, labelmap_path,
+                               meta_path, confidence_threshold,
+                               class_to_be_detected, gpu_usage)
+            self.model = YOLOModel
+
+    def detect_objects_on_single_image(self, img):
+        return self.model.detect_objects_on_single_image(self, img)
+
+    def draw_boxes_on_recent_image(self):
+        return self.model.draw_boxes_on_recent_image(self)
+
+
 # Code to thread reading camera input.
 # Source : Adrian Rosebrock
 # https://www.pyimagesearch.com/2017/02/06/faster-video-file-fps-with-cv2-videocapture-and-opencv/
