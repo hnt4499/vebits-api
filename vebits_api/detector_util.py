@@ -258,18 +258,14 @@ def detect_objects(img, tensors):
     # Detect by yolo
     if "yolo_net" in tensors:
         boxes, scores, classes = detect_objects_yolo(img, tensors)
-        if dims == 3:
-            return boxes[0], scores[0], classes[0]
-        else:
-            return boxes, scores, classes
-
-    # Detect by API
+    # Detect by Tensorflow API
     else:
         boxes, scores, classes = detect_objects_tf(img, tensors)
-        if dims == 3:
-            return np.squeeze(boxes), np.squeeze(scores), np.squeeze(classes)
-        else:
-            return boxes, scores, classes
+    if dims == 3:
+        return np.squeeze(boxes), np.squeeze(scores), np.squeeze(classes)
+    else:
+        return boxes, scores, classes
+
 
 
 # Code to thread reading camera input.
