@@ -65,7 +65,8 @@ def draw_boxes_on_image(img, boxes, labels_index, labelmap_dict):
         It must has shape (n ,4) where n is the number of
         bounding boxes.
     labels_index : ndarray-like
-        An array containing index of labels of bounding boxes.
+        An array containing index of labels of bounding boxes. If None, only
+        bouding boxes will be drawn.
     labelmap_dict : dict
         A dictionary mapping labels with its index.
 
@@ -75,10 +76,16 @@ def draw_boxes_on_image(img, boxes, labels_index, labelmap_dict):
         Return annotated image.
 
     """
+    # When no box is detected
+    if boxes is None:
+        return img
     try:
         boxes = convert(boxes,
                       lambda x: np.asarray(x, dtype=np.int32),
                       np.ndarray)
+        # When no nox is detected
+        if boxes.shape[0] == 0:
+            return img
         if boxes.shape[1] != 4 or boxes.ndim != 2:
             raise ValueError("Input bounding box must be of shape (n, 4), "
                              "got shape {} instead".format(boxes.shape))
