@@ -272,12 +272,11 @@ def detect_objects(img, tensors):
 
 class TFModel():
     def __init__(self, inference_graph_path, labelmap_path,
-                 confidence_threshold, class_to_be_detected,
-                 img_size):
+                 confidence_threshold=0.5,
+                 class_to_be_detected="all"):
         self.tensors = load_tensors(inference_graph_path, labelmap_path)
-        self.img_size = img_size
         self.cls = class_to_be_detected
-        self.thresh = confidence_threshold
+        self.threshold = confidence_threshold
 
     def detect_objects(self, img, process_boxes=True):
         """
