@@ -22,6 +22,9 @@ def _draw_box_on_image(img, box, label, color):
 
 
 def draw_box_on_image(img, box, label=None, color=None):
+    # When no box is detected
+    if box is None:
+        return img
     if isinstance(box, BBox):
         if label is None:
             return _draw_box_on_image(img, box.to_xyxy_array(), label, color)
@@ -33,6 +36,9 @@ def draw_box_on_image(img, box, label=None, color=None):
             box = convert(box,
                           lambda x: np.asarray(x, dtype=np.int32),
                           np.ndarray)
+            # When no box is detected
+            if box.shape[0] == 0:
+                return img
             if box.shape != (4,):
                 raise ValueError("Input bounding box must be of shape (4,), "
                                  "got shape {} instead".format(box.shape))
@@ -43,6 +49,9 @@ def draw_box_on_image(img, box, label=None, color=None):
 
 
 def _draw_boxes_on_image(img, boxes, labels_index, labelmap_dict):
+    """
+    This function only accepts boxes as a ndarray.
+    """
     labelmap_dict_inverse = get_label_map_dict_inverse(labelmap_dict)
     for i in range(boxes.shape[0]):
         if labels_index is None:
