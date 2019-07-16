@@ -311,6 +311,43 @@ class TFModel():
                                    self.tensors["labelmap_dict"])
 
 
+class YOLOModel():
+    def __init__(self, inference_graph_path, labelmap_path,
+                 meta_path, confidence_threshold=0.5,
+                 class_to_be_detected="all", gpu_usage=0.95):
+        self.tensors = load_tensors(inference_graph_path, labelmap_path,
+                                    meta_path=meta_path, gpu_usage=gpu_usage,
+                                    confidence_threshold=confidence_threshold)
+
+        self.threshold = confidence_threshold
+        self.cls = class_to_be_detected
+    def detect_objects_on_single_image(self, img):
+        """
+        Parameters
+        ----------
+        img : ndarray
+            Image to be detected. Can only be one image.
+
+        Returns
+        -------
+        boxes, scores, classes: ndarrays
+            Return coordinates, confidence scores and labels of bounding boxes.
+
+        """
+        self.img = img.copy()
+        boxes, scores, classes = detect_objects(img, self.tensors)
+
+        self.boxes, self.scores, self.classes = boxes, scores, classes
+        return boxes, scores, classes
+
+    def draw_boxes_on_recent_image(self):
+        """
+        Note that this function returns a new annotated image. The original
+        image fed to the model will not be affected.
+        """
+        return draw_boxes_on_image(self.img, self.boxes, self.classes,
+                                   self.tensors["labelmap_dict"])
+
 
 # Code to thread reading camera input.
 # Source : Adrian Rosebrock
