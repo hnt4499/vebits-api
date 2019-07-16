@@ -170,7 +170,7 @@ def detect_objects_tf(imgs, tensors):
             detection_classes, num_detections],
         feed_dict={image_tensor: imgs})
 
-    return boxes, scores, classes
+    return boxes, scores, classes.astype(np.int32)
 
 
 def detect_objects_yolo(imgs, tensors):
