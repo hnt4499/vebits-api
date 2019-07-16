@@ -3,6 +3,9 @@
 from . import bbox_util
 from . import im_util
 from . import labelmap_util
+from . import bbox_util
+from . import vis_util
+
 import os
 import sys
 from threading import Thread
@@ -265,6 +268,52 @@ def detect_objects(img, tensors):
         return np.squeeze(boxes), np.squeeze(scores), np.squeeze(classes)
     else:
         return boxes, scores, classes
+
+
+class TFModel():
+    def __init__(self, inference_graph_path, labelmap_path,
+                 confidence_threshold, class_to_be_detected,
+                 img_size):
+        self.tensors = load_tensors(inference_graph_path, labelmap_path)
+        self.img_size = img_size
+        self.cls = class_to_be_detected
+        self.thresh = confidence_threshold
+
+    def detect_objects(self, img, process_boxes=True):
+        """
+        Parameters
+        ----------
+        img : ndarray
+            Image(s) to be detected. Can be one or multiple images.
+        process_boxes : boolean
+            If true, processed (filter with confidence scores, classes to keep
+            and scale back to integer coordinates) bounding boxes
+            will be returned.
+
+        Returns
+        -------
+        boxes, scores, classes: ndarrays
+            Return coordinates, confidence scores and labels of bounding boxes.
+
+        """
+        self.img = img.copy()
+        boxes, scores, classes = detect_objects(img, self.tensors)
+        if process_boxes:
+            boxes, scores, classes = bbox_util.filter_boxes(boxes, scores,
+                                                            class, self.cls,
+                                                            self.thresh,
+                                                            self.img_size)
+
+        self.boxes, self.scores, self.classes = boxes, scores, classes
+        return boxes, scores, classes
+
+    def draw_boxes_on_recent_image(self):
+        """
+        Note that this function returns a new annotated image. The original
+        image will not be affected.
+        """
+        return draw_boxes_on_image(self.img, self.boxes, self.classes,
+                                   self.tensors["labelmap_dict"])
 
 
 
