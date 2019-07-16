@@ -292,6 +292,7 @@ class TFModel():
 
         """
         self.img = img.copy()
+        img_size = img.shape[:2]
         boxes, scores, classes = detect_objects(img, self.tensors)
         boxes, scores, classes = bbox_util.filter_boxes(boxes, scores,
                                                         classes, self.cls,
@@ -304,7 +305,7 @@ class TFModel():
     def draw_boxes_on_recent_image(self):
         """
         Note that this function returns a new annotated image. The original
-        image will not be affected.
+        image fed to the model will not be affected.
         """
         return draw_boxes_on_image(self.img, self.boxes, self.classes,
                                    self.tensors["labelmap_dict"])
