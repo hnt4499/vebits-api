@@ -265,7 +265,7 @@ def detect_objects(img, tensors):
     else:
         boxes, scores, classes = detect_objects_tf(img, tensors)
     if dims == 3:
-        return np.squeeze(boxes), np.squeeze(scores), np.squeeze(classes)
+        return boxes[0], scores[0], classes[0]
     else:
         return boxes, scores, classes
 
