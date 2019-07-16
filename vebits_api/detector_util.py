@@ -78,7 +78,7 @@ def load_inference_graph_yolo(inference_graph_path, meta_path,
     # Pass a fake `FLAGS` object to Darkflow
     flags = {"pbLoad": inference_graph_path,
              "metaLoad": meta_path, "gpu": gpu_usage,
-             "thresh": confidence_threshold}
+             "threshold": confidence_threshold}
     yolo_net = TFNet(flags)
     return {"yolo_net": yolo_net}
 
