@@ -278,16 +278,12 @@ class TFModel():
         self.cls = class_to_be_detected
         self.threshold = confidence_threshold
 
-    def detect_objects(self, img, process_boxes=True):
+    def detect_objects_on_single_image(self, img):
         """
         Parameters
         ----------
         img : ndarray
-            Image(s) to be detected. Can be one or multiple images.
-        process_boxes : boolean
-            If true, processed (filter with confidence scores, classes to keep
-            and scale back to integer coordinates) bounding boxes
-            will be returned.
+            Image to be detected. Can only be one image.
 
         Returns
         -------
