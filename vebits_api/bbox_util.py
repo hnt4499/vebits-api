@@ -50,6 +50,10 @@ def get_mask(boxes, scores, classes,
 
 def filter_boxes(boxes, scores, classes, classes_to_keep,
                  confidence_threshold, img_size):
+    """
+    This function is used to process bounding boxes returned by Tensorflow
+    Object Detection API only.
+    """
     mask = get_mask(boxes, scores, classes, classes_to_keep, confidence_threshold)
     boxes = boxes[mask]
     scores = scores[mask]
