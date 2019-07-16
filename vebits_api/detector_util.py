@@ -293,11 +293,10 @@ class TFModel():
         """
         self.img = img.copy()
         boxes, scores, classes = detect_objects(img, self.tensors)
-        if process_boxes:
-            boxes, scores, classes = bbox_util.filter_boxes(boxes, scores,
-                                                            class, self.cls,
-                                                            self.thresh,
-                                                            self.img_size)
+        boxes, scores, classes = bbox_util.filter_boxes(boxes, scores,
+                                                        classes, self.cls,
+                                                        self.threshold,
+                                                        img_size)
 
         self.boxes, self.scores, self.classes = boxes, scores, classes
         return boxes, scores, classes
