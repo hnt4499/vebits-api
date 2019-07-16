@@ -36,16 +36,16 @@ def draw_box_on_image(img, box, label=None, color=None):
             box = convert(box,
                           lambda x: np.asarray(x, dtype=np.int32),
                           np.ndarray)
-            # When no box is detected
-            if box.shape[0] == 0:
-                return img
-            if box.shape != (4,):
-                raise ValueError("Input bounding box must be of shape (4,), "
-                                 "got shape {} instead".format(box.shape))
-            else:
-                return _draw_box_on_image(img, box, label, color)
-        except:
+        except TypeError:
             raise_type_error(type(box), [BBox, np.ndarray])
+    # When no box is detected
+    if box.shape[0] == 0:
+        return img
+    if box.shape != (4,):
+        raise ValueError("Input bounding box must be of shape (4,), "
+                         "got shape {} instead".format(box.shape))
+    else:
+        return _draw_box_on_image(img, box, label, color)
 
 
 def _draw_boxes_on_image(img, boxes, labels_index, labelmap_dict):
@@ -92,16 +92,16 @@ def draw_boxes_on_image(img, boxes, labels_index, labelmap_dict):
         boxes = convert(boxes,
                       lambda x: np.asarray(x, dtype=np.int32),
                       np.ndarray)
-        # When no nox is detected
-        if boxes.shape[0] == 0:
-            return img
-        if boxes.shape[1] != 4 or boxes.ndim != 2:
-            raise ValueError("Input bounding box must be of shape (n, 4), "
-                             "got shape {} instead".format(boxes.shape))
-        else:
-            return _draw_boxes_on_image(img, boxes, labels_index, labelmap_dict)
     except TypeError:
         raise_type_error(type(boxes), [np.ndarray])
+    # When no box is detected
+    if boxes.shape[0] == 0:
+        return img
+    if boxes.shape[1] != 4 or boxes.ndim != 2:
+        raise ValueError("Input bounding box must be of shape (n, 4), "
+                         "got shape {} instead".format(boxes.shape))
+    else:
+        return _draw_boxes_on_image(img, boxes, labels_index, labelmap_dict)
 
 
 def draw_number(img, number, loc=None):
