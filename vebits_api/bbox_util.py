@@ -132,8 +132,8 @@ def boxes_padding_inverse(bboxes, img_size, img_size_orig):
     Parameters
     ----------
     bboxes : array-like
-        ndarray of shape (n, 4) o (4,), where n is the number of bounding boxes of the
-        same image.
+        ndarray of shape (n, 4) o (4,), where n is the number of
+        bounding boxes of the same image.
     img_size : tuple-like
         `(height, width)` of the image after resized.
     img_size_orig : tuple-like
