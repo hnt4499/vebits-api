@@ -9,28 +9,32 @@ FONT = cv2.FONT_HERSHEY_SIMPLEX
 COLORS = [(0, 255, 0), (255, 0, 0), (0, 0, 255), (100, 100, 100), (0, 255, 0)]
 
 
-def _draw_box_on_image(img, box, label, color):
+def _draw_box_on_image(img, box, label, color,
+                       text_scale=0.75, thickness=2):
     # Use default color if `color` is not specified.
     if color is None:
         color = COLORS[0]
     p1 = (int(box[0]), int(box[1]))
     p2 = (int(box[2]), int(box[3]))
-    cv2.rectangle(img, p1, p2, color, 3, 1)
+    cv2.rectangle(img, p1, p2, color, thickness=thickness, lineType=1)
     if label is not None:
-        cv2.putText(img, label, p1, FONT, 0.75, color, 2, cv2.LINE_AA)
+        cv2.putText(img, label, p1, FONT, fontScale=text_scale, color=color,
+                    thickness=thickness, lineType=cv2.LINE_AA)
     return img
 
 
-def draw_box_on_image(img, box, label=None, color=None):
+def draw_box_on_image(img, box, label=None, color=None, **kwargs):
     # When no box is detected
     if box is None:
         return img
     if isinstance(box, BBox):
         if label is None:
-            return _draw_box_on_image(img, box.to_xyxy_array(), label, color)
+            return _draw_box_on_image(img, box.to_xyxy_array(), label, color,
+                                      **kwargs)
         else:
             return _draw_box_on_image(img, box.to_xyxy_array(),
-                                      box.get_label(), color)
+                                      box.get_label(), color,
+                                      **kwargs)
     else:
         try:
             box = convert(box,
@@ -45,25 +49,30 @@ def draw_box_on_image(img, box, label=None, color=None):
         raise ValueError("Input bounding box must be of shape (4,), "
                          "got shape {} instead".format(box.shape))
     else:
-        return _draw_box_on_image(img, box, label, color)
+        return _draw_box_on_image(img, box, label, color,
+                                  **kwargs)
 
 
-def _draw_boxes_on_image(img, boxes, labels_index, labelmap_dict):
+def _draw_boxes_on_image(img, boxes, labels_index,
+                         labelmap_dict, **kwargs):
     """
     This function only accepts boxes as a ndarray.
     """
     labelmap_dict_inverse = get_label_map_dict_inverse(labelmap_dict)
     for i in range(boxes.shape[0]):
         if labels_index is None:
-            img = _draw_box_on_image(img, boxes[i], None, None)
+            img = _draw_box_on_image(img, boxes[i], None, None,
+                                     **kwargs)
         else:
             label = labels_index[i]
             label_text = labelmap_dict_inverse[label]
-            img = _draw_box_on_image(img, boxes[i], label_text, COLORS[label])
+            img = _draw_box_on_image(img, boxes[i], label_text, COLORS[label],
+                                     **kwargs)
     return img
 
 
-def draw_boxes_on_image(img, boxes, labels_index, labelmap_dict):
+def draw_boxes_on_image(img, boxes, labels_index, labelmap_dict,
+                        **kwargs):
     """Short summary.
 
     Parameters
@@ -101,7 +110,8 @@ def draw_boxes_on_image(img, boxes, labels_index, labelmap_dict):
         raise ValueError("Input bounding box must be of shape (n, 4), "
                          "got shape {} instead".format(boxes.shape))
     else:
-        return _draw_boxes_on_image(img, boxes, labels_index, labelmap_dict)
+        return _draw_boxes_on_image(img, boxes, labels_index,
+                                    labelmap_dict, **kwargs)
 
 
 def draw_number(img, number, loc=None):
