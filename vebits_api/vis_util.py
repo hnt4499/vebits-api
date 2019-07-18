@@ -42,7 +42,8 @@ def transparent(function):
 
 @transparent
 def _draw_box_on_image(img, box, label, color,
-                       text_scale=0.75, thickness=2):
+                       text_scale=0.75, thickness=2,
+                       line_type=cv2.LINE_AA):
     # Use default color if `color` is not specified.
     if color is None:
         color = COLORS[0]
@@ -51,7 +52,7 @@ def _draw_box_on_image(img, box, label, color,
     cv2.rectangle(img, p1, p2, color, thickness=thickness, lineType=1)
     if label is not None:
         cv2.putText(img, label, p1, FONT, fontScale=text_scale, color=color,
-                    thickness=thickness, lineType=cv2.LINE_AA)
+                    thickness=thickness, lineType=line_type)
     return img
 
 
