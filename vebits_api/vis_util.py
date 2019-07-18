@@ -40,6 +40,7 @@ def transparent(function):
     return overlay
 
 
+@transparent
 def _draw_box_on_image(img, box, label, color,
                        text_scale=0.75, thickness=2):
     # Use default color if `color` is not specified.
@@ -54,6 +55,7 @@ def _draw_box_on_image(img, box, label, color,
     return img
 
 
+@transparent
 def draw_box_on_image(img, box, label=None, color=None, **kwargs):
     # When no box is detected
     if box is None:
@@ -84,6 +86,7 @@ def draw_box_on_image(img, box, label=None, color=None, **kwargs):
                                   **kwargs)
 
 
+@transparent
 def _draw_boxes_on_image(img, boxes, labels_index,
                          labelmap_dict, **kwargs):
     """
@@ -102,6 +105,7 @@ def _draw_boxes_on_image(img, boxes, labels_index,
     return img
 
 
+@transparent
 def draw_boxes_on_image(img, boxes, labels_index, labelmap_dict,
                         **kwargs):
     """Short summary.
@@ -145,6 +149,7 @@ def draw_boxes_on_image(img, boxes, labels_index, labelmap_dict,
                                     labelmap_dict, **kwargs)
 
 
+@transparent
 def draw_number(img, number, loc=None):
     loc = (20, 50) if loc is None else loc
     cv2.putText(img, str(number), loc,
