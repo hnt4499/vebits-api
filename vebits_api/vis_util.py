@@ -1,3 +1,5 @@
+from functools import wraps
+
 import cv2
 import numpy as np
 
@@ -7,6 +9,31 @@ from .labelmap_util import get_label_map_dict_inverse
 
 FONT = cv2.FONT_HERSHEY_SIMPLEX
 COLORS = [(0, 255, 0), (255, 0, 0), (0, 0, 255), (100, 100, 100), (0, 255, 0)]
+
+
+def transparent(function):
+    """
+    This acts as a wrapper/decorator to provide ability to
+    draw transparent line/rectangle/etc. Can be used to wrap
+    any function that involves drawing.
+
+    Properties: the first argument of the function to be wrapped must be an
+    array representing an image. `alpha` should be passed as a keyword argument.
+    By default, `alpha` = 1 is used, meaning that no transparency is applied.
+    """
+    @wraps(function) # to preserve `function` metadata
+    def overlay(*args, **kwargs):
+        if len(args) > 0:
+            img = args[0].copy()
+        else:
+            img = kwargs["img"].copy()
+        alpha = kwargs["alpha"]
+        kwargs = {k:v for k, v in kwargs.items() if k != "alpha"}
+        img_drawn = function(*args, **kwargs)
+        cv2.addWeighted(img_drawn, alpha, img, 1 - alpha,
+                        0, img)
+        return img
+    return overlay
 
 
 def _draw_box_on_image(img, box, label, color,
