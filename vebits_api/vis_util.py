@@ -28,7 +28,7 @@ def transparent(function):
         else:
             img = kwargs["img"].copy()
         # Get `alpha` value.
-        if alpha in kwargs:
+        if "alpha" in kwargs:
             alpha = kwargs["alpha"]
             kwargs = {k:v for k, v in kwargs.items() if k != "alpha"}
         else:
