@@ -19,7 +19,7 @@ def transparent(function):
 
     Properties: the first argument of the function to be wrapped must be an
     array representing an image. `alpha` should be passed as a keyword argument.
-    By default, `alpha` = 1 is used, meaning that no transparency is applied.
+    By default, `alpha` = 1.0 is used, meaning that no transparency is applied.
     """
     @wraps(function) # to preserve `function` metadata
     def overlay(*args, **kwargs):
@@ -27,8 +27,12 @@ def transparent(function):
             img = args[0].copy()
         else:
             img = kwargs["img"].copy()
-        alpha = kwargs["alpha"]
-        kwargs = {k:v for k, v in kwargs.items() if k != "alpha"}
+        # Get `alpha` value.
+        if alpha in kwargs:
+            alpha = kwargs["alpha"]
+            kwargs = {k:v for k, v in kwargs.items() if k != "alpha"}
+        else:
+            alpha = 1.0
         img_drawn = function(*args, **kwargs)
         cv2.addWeighted(img_drawn, alpha, img, 1 - alpha,
                         0, img)
