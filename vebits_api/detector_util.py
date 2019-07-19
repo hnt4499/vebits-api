@@ -15,8 +15,12 @@ from collections import defaultdict
 import numpy as np
 import tensorflow as tf
 import cv2
+
 # DarkNet/Darkflow for YOLO
-from darkflow.net.build import TFNet
+try:
+    from darkflow.net.build import TFNet
+except ModuleNotFoundError:
+    print("No Darkflow found.")
 # Multiprocessing
 from multiprocessing.pool import ThreadPool
 pool = ThreadPool()
