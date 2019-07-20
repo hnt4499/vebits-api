@@ -4,7 +4,7 @@ from . import bbox_util
 from . import im_util
 from . import labelmap_util
 from . import bbox_util
-from .vis_util import draw_boxes_on_image
+from . import vis_util
 
 import os
 import sys
