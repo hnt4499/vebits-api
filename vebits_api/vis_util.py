@@ -124,7 +124,7 @@ def draw_boxes_on_image(img, boxes, labels_index, labelmap_dict,
         bounding boxes.
     labels_index : ndarray-like
         An array containing index of labels of bounding boxes. If None, only
-        bouding boxes will be drawn.
+        bounding boxes will be drawn.
     labelmap_dict : dict
         A dictionary mapping labels with its index.
 
