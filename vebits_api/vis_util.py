@@ -156,8 +156,16 @@ def draw_boxes_on_image(img, boxes, labels_index, labelmap_dict,
 
 
 @transparent
-def draw_number(img, number, loc=None):
-    loc = (20, 50) if loc is None else loc
+def draw_number(img, number, loc=None,
+                text_scale=1.25, color=None,
+                thickness=2):
+    # If `loc` is None, automatically calculate appropriate location.
+    if loc is None:
+        size = cv2.getTextSize(str(number), FONT, text_scale, thickness)
+        loc = (10, size[0][1] + 10) # margin is 10 to top left corner
+    if color is None:
+        color = COLORS[0]
     cv2.putText(img, str(number), loc,
-                FONT, 1.25, COLORS[0], 2)
+                FONT, text_scale, color,
+                thickness)
     return img
