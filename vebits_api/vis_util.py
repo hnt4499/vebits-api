@@ -105,8 +105,9 @@ def _draw_boxes_on_image(img, boxes, labels_index,
         else:
             label = labels_index[i]
             label_text = labelmap_dict_inverse[label]
-            img = _draw_box_on_image(img, boxes[i], label_text, COLORS[label],
-                                     **kwargs)
+            color = COLORS[label % len(COLORS)]
+            img = _draw_box_on_image(img, boxes[i], label_text,
+                                     color, **kwargs)
     return img
 
 
