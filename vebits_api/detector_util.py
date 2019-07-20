@@ -311,7 +311,8 @@ class TFModel():
         Note that this function returns a new annotated image. The original
         image fed to the model will not be affected.
         """
-                                   self.tensors["labelmap_dict"])
+        return vis_util.draw_boxes_on_image(self.img, self.boxes, self.classes,
+                                            self.tensors["labelmap_dict"])
 
 
 class YOLOModel():
