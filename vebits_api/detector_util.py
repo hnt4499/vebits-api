@@ -381,6 +381,177 @@ class Model():
         return self.model.draw_boxes_on_recent_image(self)
 
 
+class VideoStream:
+    """Convenience utility to handle Camera/Video stream.
+
+    Parameters
+    ----------
+    src : str or int
+        str: path to the video file
+        int: index of the webcam device
+    src_width : int
+        If source is video, this option is ignored.
+        If source is webcam, this specifies the width of the frame to capture
+        from the webcam. Default=640
+    src_height : int
+        If source is video, this option is ignored.
+        If source is webcam, this specifies the height of the frame to capture
+        from the webcam. Default=480
+
+    """
+    def __init__(self, src, src_width=640, src_height=480):
+        self.src = cv2.VideoCapture(src)
+        self.count = -1
+        self.mode = "webcam" if isinstance(src, int) else "video"
+
+        if self.mode == "webcam":
+            self.src_width = src_width
+            self.src_height = src_height
+            self.src.set(3, src_width)
+            self.src.set(4, src_height)
+
+        else:
+            # Grab the first frame to get frame width and height
+            # and reset some values.
+            self.grab()
+            self.src_height, self.src_width = self.frame.shape[:2]
+            # Release and reset
+            self.src.release()
+            self.src = cv2.VideoCapture(src)
+            self.count = -1
+
+        # Set default parameters for displaying
+        self.set_display_params("OpenCV", self.src_width, self.src_height)
+        self.out = None # No output by default
+
+    def set_display_params(self, display_name,
+                           display_width, display_height,
+                           terminate_key=113, pause_key=32,
+                           delay=1, draw_count=False):
+        """
+        By default, press "q" (code: 113) to terminate displaying
+        and spacebar (code: 32) to pause. Must be passed as a Unicode
+        value. `delay`: number of miliseconds to wait until next frame.
+        """
+        self.display_name = display_name
+        cv2.namedWindow(self.display_name, cv2.WINDOW_NORMAL)
+        cv2.resizeWindow(self.display_name, display_width, display_height)
+
+        self.terminate_key = terminate_key
+        self.pause_key = pause_key
+        self.delay = delay
+        self.draw_count = draw_count
+
+    def set_output_params(self, output_path, output_width=None,
+                          output_height=None, resize_func=None,
+                          fourcc="mp4v", fps=20):
+        """Set parameters for saving video output.
+
+        Parameters
+        ----------
+        output_path : str
+        output_width : int
+            If None, use source width.
+        output_height : int
+            If None, use source height.
+        resize_func : callable
+            If `output_width` or `output_height` is different from `src_width`
+            and `src_height`, respectively, resize function will be used to
+            resize frames. It takes exactly one argument, which is an image,
+            and return an image that has the same shape as specified
+            output shape. If None, `vebits_api.im_util.resize_padding` will
+            be used.
+        fourcc: str of length 4
+            4-byte code used to specify the video codec. By default, "mp4v" is
+            used to save `*.mp4` files.
+        fps: int
+
+        """
+        if output_width is None:
+            output_width = self.src_width
+        if output_height is None:
+            output_height = self.src_height
+
+        self.output_size = (output_height, output_width)
+        self.out = cv2.VideoWriter(output_path,
+                                   cv2.VideoWriter_fourcc(*fourcc),
+                                   fps, self.output_size[::-1])
+        # Set self.diff, a parameter controls whether output video has the
+        # same shape as input stream. If self.diff is True, resize_func will
+        # be used to resize input frames to desired shape.
+        if output_width != self.src_width or output_height != self.src_height:
+            self.diff = True
+        else:
+            self.diff = False
+
+        if resize_func is None:
+            self.resize_func = lambda x: im_util.resize_padding(x, self.output_size)
+        else:
+            self.resize_func = resize_func
+
+    def grab(self):
+        """
+        Return False if end of streaming.
+        """
+        self.ret, self.frame = self.src.read()
+        self.count += 1
+        return self.ret
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        # Grab a new frame and get the `ret` value.
+        # If it is False, terminate the loop.
+        if not self.grab():
+            if self.out is not None:
+                self.out.release()
+            self.src.release()
+            raise StopIteration
+        else:
+            return self.frame
+
+    def display_frame(self, frame=None):
+        """
+        If `frame` is None, display the current frame grabbed. Otherwise,
+        display the desired frame. Return False if terminate signal is fired.
+        """
+        if frame is None:
+            frame = self.frame
+        # Draw frame count
+        if self.draw_count:
+            frame = vis_util.draw_number(frame, self.count)
+        cv2.imshow(self.display_name, frame)
+        # Capture key
+        key = cv2.waitKey(self.delay)
+        # If terminated
+        if key == self.terminate_key:
+            return False
+        # If paused
+        if key == self.pause_key:
+            while True:
+                key = cv2.waitKey(self.delay)
+                # Wait until received the pause key again
+                if key == self.pause_key:
+                    break
+        return True
+
+    def write_frame(self, frame=None):
+        """
+        If `frame` is None, display the last frame grabbed.
+        Otherwise, display the desired frame.
+        """
+        if self.out is None:
+            raise ValueError("Output parameters are not set. "
+                             "Set by using `set_output_params`.")
+        if frame is None:
+            frame = self.frame
+        # Resize frame
+        if self.diff:
+            frame = self.resize_func(frame)
+        self.out.write(frame)
+
+
 # Code to thread reading camera input.
 # Source : Adrian Rosebrock
 # https://www.pyimagesearch.com/2017/02/06/faster-video-file-fps-with-cv2-videocapture-and-opencv/
