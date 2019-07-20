@@ -8,7 +8,11 @@ from .others_util import convert, raise_type_error
 from .labelmap_util import get_label_map_dict_inverse
 
 FONT = cv2.FONT_HERSHEY_SIMPLEX
-COLORS = [(0, 255, 0), (255, 0, 0), (0, 0, 255), (100, 100, 100), (0, 255, 0)]
+COLORS = [(119, 76, 219), (154, 85, 16), (200, 162, 60), (23, 203, 176),
+          (0, 255, 0), (152, 34, 82), (1, 122, 254), (171, 21, 192),
+          (57, 40, 234), (0, 221, 254), (204, 159, 120), (0, 255, 152),
+          (20, 102, 172), (77, 80, 244), (75, 202, 242), (130, 78, 139),
+          (194, 153, 194)]
 
 
 def transparent(function):
