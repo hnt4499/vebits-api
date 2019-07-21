@@ -494,7 +494,7 @@ class VideoStream:
         Return False if end of streaming.
         """
         self.ret, self.frame = self.src.read()
-        self.count += 1
+        if self.ret: self.count += 1
         return self.ret
 
     def __iter__(self):
