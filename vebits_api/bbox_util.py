@@ -50,6 +50,10 @@ def get_mask(boxes, scores, classes,
 
 def filter_boxes(boxes, scores, classes, classes_to_keep,
                  confidence_threshold, img_size):
+    """
+    This function is used to process bounding boxes returned by Tensorflow
+    Object Detection API only.
+    """
     mask = get_mask(boxes, scores, classes, classes_to_keep, confidence_threshold)
     boxes = boxes[mask]
     scores = scores[mask]
@@ -118,6 +122,38 @@ def iou(bbox_1, bbox_2):
         return _iou(bbox_1.to_xyxy_array(), bbox_2.to_xyxy_array())
     else:
         return _iou(bbox_1, bbox_2)
+
+
+def boxes_padding_inverse(bboxes, img_size, img_size_orig):
+    """This function is used to calculate the coordinates of the bounding boxes
+    before its corresponding image is resized by `resize_padding` function given
+    the bouding boxes after the image is resized.
+
+    Parameters
+    ----------
+    bboxes : array-like
+        ndarray of shape (n, 4) o (4,), where n is the number of
+        bounding boxes of the same image.
+    img_size : tuple-like
+        `(height, width)` of the image after resized.
+    img_size_orig : tuple-like
+        `(height, width)` of the image before resized.
+
+    """
+    height, width = img_size
+    height_orig, width_orig = img_size_orig
+    scale = min(height / float(height_orig), width / float(width_orig))
+    # Calculate offsets along two dimensions
+    offset_x = (width - width_orig * scale) / 2
+    offset_y = (height - height_orig * scale) / 2
+    # Calculate original bounding boxes
+    offsets = np.array([offset_x, offset_y] * 2)
+    bboxes_orig = bboxes - offsets
+    # Scale back to original size
+    bboxes_orig /= scale
+
+    return bboxes_orig
+
 
 
 class BBox():
