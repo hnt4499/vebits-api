@@ -2,7 +2,7 @@
 A high-level, comprehensive package that leverages user's experience when working with Tensorflow's Object Detection API.
 
 ## Overview
-This package has been developed to turn my works at [Vebits](https://vebits.com/en) into a friendly, easy-to-use API that facilitate user's experience when working with [Tensorflow Object Detection API](https://github.com/tensorflow/models/tree/master/research/object_detection). New features are being developed and tested to working with [DarkNet](https://github.com/pjreddie/darknet)/[Darkflow](https://github.com/thtrieu/darkflow) for training YOLO models running real-time on mobile devices.
+This package has been developed to turn my works at [Vebits](https://vebits.com/en) into a friendly, easy-to-use API that facilitate user's experience when working with [Tensorflow Object Detection API](https://github.com/tensorflow/models/tree/master/research/object_detection). New features are being developed and tested to working with [DarkNet](https://github.com/pjreddie/darknet)/[Darkflow](https://github.com/thtrieu/darkflow) for training YOLO models running real-time on mobile devices; as well as with MM.
 ## Dependencies
 All dependencies are listed under `requirement.txt`
 ```
@@ -65,6 +65,6 @@ That's it! To make use of available scripts for data manipulating/processing/vis
 - [ ] Incorporate DarkNet into this package.
 - [ ] 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMjEzMjg4MzMxNCwxMzYwMTg1OCwyMTQ0OD
-U4N119
+eyJoaXN0b3J5IjpbMjQ3MDc4Mzc1LDEzNjAxODU4LDIxNDQ4NT
+g3XX0=
 -->
