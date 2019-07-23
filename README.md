@@ -30,7 +30,14 @@ Shapely==1.6.4.post2
 six==1.12.0
 tqdm==4.32.2
 ```
-Optionally, for the API to work seamlessly with Tensorflow's Object Detection API
+Optionally, the following packages are required for the API to work seamlessly with 
+
+ - Tensorflow's Object Detection API: `tensorflow`
+ ```
+ pip install tensorflow-gpu
+ ```
+- Darknet/Darkflow for YOLO models: da
+
 ## Installation
 To install the latest stable release of this package, simply run:
 ```
@@ -53,6 +60,6 @@ That's it! To make use of available scripts for data manipulating/processing/vis
 - [ ] Incorporate DarkNet into this package.
 - [ ] 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTIxMzI0ODg5MDUsMTM2MDE4NTgsMjE0ND
+eyJoaXN0b3J5IjpbLTE5MTM1OTQ2NjksMTM2MDE4NTgsMjE0ND
 g1ODddfQ==
 -->
