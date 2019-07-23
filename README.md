@@ -36,7 +36,12 @@ Optionally, the following packages are required for the API to work seamlessly w
  ```
  pip install tensorflow-gpu
  ```
-- Darknet/Darkflow for YOLO models: da
+- Darknet/Darkflow for YOLO models: `darkflow`
+```
+git clone https://github.com/thtrieu/darkflow.git
+cd darkflow
+pip install -e .
+```
 
 ## Installation
 To install the latest stable release of this package, simply run:
@@ -60,6 +65,6 @@ That's it! To make use of available scripts for data manipulating/processing/vis
 - [ ] Incorporate DarkNet into this package.
 - [ ] 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE5MTM1OTQ2NjksMTM2MDE4NTgsMjE0ND
-g1ODddfQ==
+eyJoaXN0b3J5IjpbMjEzMjg4MzMxNCwxMzYwMTg1OCwyMTQ0OD
+U4N119
 -->
