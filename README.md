@@ -4,7 +4,33 @@ A high-level, comprehensive package that leverages user's experience when workin
 ## Overview
 This package has been developed to turn my works at [Vebits](https://vebits.com/en) into a friendly, easy-to-use API that facilitate user's experience when working with [Tensorflow Object Detection API](https://github.com/tensorflow/models/tree/master/research/object_detection). New features are being developed and tested to working with [DarkNet](https://github.com/pjreddie/darknet)/[Darkflow](https://github.com/thtrieu/darkflow) for training YOLO models running real-time on mobile devices.
 ## Dependencies
-
+All dependencies are listed under `requirement.txt`
+```
+certifi==2019.6.16
+cycler==0.10.0
+decorator==4.4.0
+imageio==2.5.0
+imgaug==0.2.9
+imutils==0.5.2
+kiwisolver==1.1.0
+matplotlib==3.1.1
+networkx==2.3
+numpy==1.16.4
+opencv-python==4.1.0.25
+pandas==0.25.0
+Pillow==6.1.0
+protobuf==3.9.0
+pyparsing==2.4.1
+python-dateutil==2.8.0
+pytz==2019.1
+PyWavelets==1.0.3
+scikit-image==0.15.0
+scipy==1.3.0
+Shapely==1.6.4.post2
+six==1.12.0
+tqdm==4.32.2
+```
+Optionally, for the API to work seamlessly with Tensorflow's Object Detection API
 ## Installation
 To install the latest stable release of this package, simply run:
 ```
@@ -27,5 +53,6 @@ That's it! To make use of available scripts for data manipulating/processing/vis
 - [ ] Incorporate DarkNet into this package.
 - [ ] 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTM2MDE4NTgsMjE0NDg1ODddfQ==
+eyJoaXN0b3J5IjpbLTIxMzI0ODg5MDUsMTM2MDE4NTgsMjE0ND
+g1ODddfQ==
 -->
