@@ -6,13 +6,12 @@ This package has been developed to turn my works at [Vebits](https://vebits.com/
 
 ## Installation
 To install the latest stable release of this package, simply run:
-
-`pip install vebits_api`
+```pip install vebits_api```
 
 ## TODO:
 - [ ] Complete README.md: Requirements, Build from source, Usage, Reference, Examples.
 - [ ] Incorporate DarkNet into this package.
 - [ ] 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE4MDc4MDc0NDldfQ==
+eyJoaXN0b3J5IjpbOTE3MjM3NTYxXX0=
 -->
