@@ -596,7 +596,7 @@ class VideoStream:
         This function releases whatever can be released.
         """
         self.release_in()
-        if self,out is not None:
+        if self.out is not None:
             self.release_out()
 
 
