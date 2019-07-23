@@ -35,7 +35,7 @@ pool = ThreadPool()
 
 
 # Load Tensorflow inference graph into memory
-@check_import(tf_imported, "tensorflow")
+@check_import([tf_imported], ["tensorflow"])
 def load_inference_graph_tf(inference_graph_path):
     # load frozen tensorflow model into memory
     detection_graph = tf.Graph()
@@ -66,7 +66,7 @@ def load_inference_graph_tf(inference_graph_path):
     return tensors
 
 
-@check_import(df_imported, "darkflow")
+@check_import([df_imported], ["darkflow"])
 def load_inference_graph_yolo(inference_graph_path, meta_path,
                               gpu_usage=0.95, confidence_threshold=0.5):
     """Load YOLO's inference graph into memory.
@@ -175,7 +175,7 @@ def load_tensors(inference_graph_path, labelmap_path,
     return tensors
 
 
-@check_import(tf_imported, "tensorflow")
+@check_import([tf_imported], ["tensorflow"])
 def detect_objects_tf(imgs, tensors):
     sess = tensors["sess"]
     image_tensor = tensors["image_tensor"]
@@ -192,7 +192,7 @@ def detect_objects_tf(imgs, tensors):
     return boxes, scores, classes.astype(np.int32)
 
 
-@check_import(df_imported, "darkflow")
+@check_import([df_imported], ["darkflow"])
 def detect_objects_yolo(imgs, tensors):
     """This function makes use of multiprocessing to make predictions on batch.
 
@@ -289,7 +289,7 @@ def detect_objects(img, tensors):
 
 
 class TFModel():
-    @check_import(tf_imported, "tensorflow")
+    @check_import([tf_imported], ["tensorflow"])
     def __init__(self, inference_graph_path, labelmap_path,
                  confidence_threshold=0.5,
                  class_to_be_detected="all"):
@@ -331,7 +331,7 @@ class TFModel():
 
 
 class YOLOModel():
-    @check_import(df_imported, "darkflow")
+    @check_import([df_imported], ["darkflow"])
     def __init__(self, inference_graph_path, labelmap_path,
                  meta_path, confidence_threshold=0.5,
                  class_to_be_detected="all", gpu_usage=0.95):
@@ -341,6 +341,7 @@ class YOLOModel():
 
         self.threshold = confidence_threshold
         self.cls = class_to_be_detected
+        
     def detect_objects_on_single_image(self, img):
         """
         Parameters
