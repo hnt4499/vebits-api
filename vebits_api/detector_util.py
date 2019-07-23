@@ -421,26 +421,37 @@ class VideoStream:
             self.count = -1
 
         # Set default parameters for displaying
-        self.set_display_params("OpenCV", self.src_width, self.src_height)
+        self.set_display_params("OpenCV", self.src_width,
+                                self.src_height, init=False)
         self.out = None # No output by default
 
     def set_display_params(self, display_name,
                            display_width, display_height,
                            terminate_key=113, pause_key=32,
-                           delay=1, draw_count=False):
+                           delay=1, draw_count=False,
+                           init=False):
         """
         By default, press "q" (code: 113) to terminate displaying
         and spacebar (code: 32) to pause. Must be passed as a Unicode
         value. `delay`: number of miliseconds to wait until next frame.
         """
         self.display_name = display_name
-        cv2.namedWindow(self.display_name, cv2.WINDOW_NORMAL)
-        cv2.resizeWindow(self.display_name, display_width, display_height)
+        self.display_width = display_width
+        self.display_height = display_height
 
         self.terminate_key = terminate_key
         self.pause_key = pause_key
         self.delay = delay
         self.draw_count = draw_count
+        self.init = init
+
+        if init:
+            self.init_display()
+
+    def init_display(self):
+        cv2.namedWindow(self.display_name, cv2.WINDOW_NORMAL)
+        cv2.resizeWindow(self.display_name, self.display_width,
+                         self.display_height)
 
     def set_output_params(self, output_path, output_width=None,
                           output_height=None, resize_func=None,
@@ -516,6 +527,9 @@ class VideoStream:
         If `frame` is None, display the current frame grabbed. Otherwise,
         display the desired frame. Return False if terminate signal is fired.
         """
+        # Check whether displaying utility is initialized or not
+        if not self.init:
+            self.init_display()
         if frame is None:
             frame = self.frame
         # Draw frame count
