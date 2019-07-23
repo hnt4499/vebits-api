@@ -13,7 +13,6 @@ from datetime import datetime
 from collections import defaultdict
 
 import numpy as np
-import tensorflow as tf
 import cv2
 # Try importing Tensorflow
 try:
@@ -341,7 +340,7 @@ class YOLOModel():
 
         self.threshold = confidence_threshold
         self.cls = class_to_be_detected
-        
+
     def detect_objects_on_single_image(self, img):
         """
         Parameters
