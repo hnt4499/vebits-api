@@ -11,13 +11,16 @@ pip install vebits_api
 ```
 Alternatively, to build the project from source in development mode and allow the changes to take effect immediately:
 ```
-git
+git clone https://github.com/hnt4499/vebits_api/
+cd vebits_api/
+pip install -e .
 ```
+That's it! To make use of available scripts for data manipulating/processing/visuali
 
 ## TODO:
 - [ ] Complete README.md: Requirements, Build from source, Usage, Reference, Examples.
 - [ ] Incorporate DarkNet into this package.
 - [ ] 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMjE1Mjg1ODA3XX0=
+eyJoaXN0b3J5IjpbMTc5MDQzNDUyNV19
 -->
