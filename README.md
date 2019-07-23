@@ -16,6 +16,10 @@ git clone https://github.com/hnt4499/vebits_api/
 cd vebits_api/
 pip install -e .
 ```
+or
+```
+pip install git+https://github.com/hnt4499/vebits_api.git
+```
 That's it! To make use of available scripts for data manipulating/processing/visualization, simply copy all scripts under `scripts` folder to your working directory.
 
 ## TODO:
@@ -23,5 +27,5 @@ That's it! To make use of available scripts for data manipulating/processing/vis
 - [ ] Incorporate DarkNet into this package.
 - [ ] 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMjE0NDg1ODddfQ==
+eyJoaXN0b3J5IjpbMTM2MDE4NTgsMjE0NDg1ODddfQ==
 -->
