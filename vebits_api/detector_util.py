@@ -3,8 +3,8 @@
 from . import bbox_util
 from . import im_util
 from . import labelmap_util
-from . import bbox_util
 from . import vis_util
+from .others_util import check_import
 
 import os
 import sys
@@ -15,12 +15,20 @@ from collections import defaultdict
 import numpy as np
 import tensorflow as tf
 import cv2
-
-# DarkNet/Darkflow for YOLO
+# Try importing Tensorflow
+try:
+    import tensorflow as tf
+    tf_imported = True
+except ModuleNotFoundError:
+    print("No tensorflow installation found.")
+    tf_imported = False
+# Try importing DarkNet/Darkflow for YOLO
 try:
     from darkflow.net.build import TFNet
+    df_imported = True
 except ModuleNotFoundError:
-    print("No Darkflow found.")
+    print("No Darkflow installation found.")
+    df_imported = False
 # Multiprocessing
 from multiprocessing.pool import ThreadPool
 pool = ThreadPool()
