@@ -3,6 +3,7 @@ A high-level, comprehensive package that leverages user's experience when workin
 
 ## Overview
 This package has been developed to turn my works at [Vebits](https://vebits.com/en) into a friendly, easy-to-use API that facilitate user's experience when working with [Tensorflow Object Detection API](https://github.com/tensorflow/models/tree/master/research/object_detection). New features are being developed and tested to working with [DarkNet](https://github.com/pjreddie/darknet)/[Darkflow](https://github.com/thtrieu/darkflow) for training YOLO models running real-time on mobile devices.
+## Dependencies
 
 ## Installation
 To install the latest stable release of this package, simply run:
@@ -15,12 +16,12 @@ git clone https://github.com/hnt4499/vebits_api/
 cd vebits_api/
 pip install -e .
 ```
-That's it! To make use of available scripts for data manipulating/processing/visuali
+That's it! To make use of available scripts for data manipulating/processing/visualization, simply copy all scripts under `scripts` folder to your working directory.
 
 ## TODO:
 - [ ] Complete README.md: Requirements, Build from source, Usage, Reference, Examples.
 - [ ] Incorporate DarkNet into this package.
 - [ ] 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTc5MDQzNDUyNV19
+eyJoaXN0b3J5IjpbMjE0NDg1ODddfQ==
 -->
