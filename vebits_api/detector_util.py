@@ -568,6 +568,20 @@ class VideoStream:
             frame = self.resize_func(frame)
         self.out.write(frame)
 
+    def release_in(self):
+        self.src.release()
+
+    def release_out(self):
+        self.out,release()
+
+    def release(self):
+        """
+        This function releases whatever can be released.
+        """
+        self.release_in()
+        if self,out is not None:
+            self.release_out()
+
 
 # Code to thread reading camera input.
 # Source : Adrian Rosebrock
