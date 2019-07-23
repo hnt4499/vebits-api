@@ -1,3 +1,6 @@
+from functools import wraps
+
+
 def get_classes(class_to_be_detected, labelmap_dict):
     if class_to_be_detected == "all":
         return "all"
@@ -54,3 +57,21 @@ def raise_type_error(true_type, expected_type):
     else:
         raise TypeError("Invalid input data type. Expected one of the following:"
                         " {}. Got {} instead".format(expected_type, true_type))
+
+
+def import_wrapper(import_function, package_name):
+    """
+    This function wraps up other functions as decorator and check whether the
+    provided package can be imported or not. This should be used to catch any
+    ImportError beforehand for functions that require specific packages.
+    """
+    @wraps(function)
+    def wrapper(function):
+        def _wrapper(*args, **kwargs):
+            try:
+                import_function()
+            except ImportError:
+                print("Cannot import package {}".format(package_name))
+            return function(*args, **kwargs)
+        return _wrapper
+    return wrapper
