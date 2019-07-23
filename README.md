@@ -42,6 +42,7 @@ git clone https://github.com/thtrieu/darkflow.git
 cd darkflow
 pip install -e .
 ```
+- MMdetection toolbox: details on installation can be found [here](https://github.com/open-mmlab/mmdetection/blob/master/INSTALL.md).
 
 ## Installation
 To install the latest stable release of this package, simply run:
@@ -65,6 +66,6 @@ That's it! To make use of available scripts for data manipulating/processing/vis
 - [ ] Incorporate DarkNet into this package.
 - [ ] 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTE2MjE4MjQ2OCwxMzYwMTg1OCwyMTQ0OD
-U4N119
+eyJoaXN0b3J5IjpbNzcxNjc2MDk0LDEzNjAxODU4LDIxNDQ4NT
+g3XX0=
 -->
