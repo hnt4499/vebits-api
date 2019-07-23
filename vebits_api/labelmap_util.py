@@ -1,11 +1,18 @@
 """Label map utility functions."""
 
 import logging
-
-import tensorflow as tf
+# Try importing tensorflow
+try:
+    import tensorflow as tf
+    tf_imported = True
+except ModuleNotFoundError:
+    print("No tensorflow installation found")
+    tf_imported = False
+    
 from google.protobuf import text_format
 
 from . import string_int_label_map_pb2
+from .others_util import check_import
 
 
 def _validate_label_map(label_map):
@@ -91,6 +98,7 @@ def convert_label_map_to_categories(label_map,
     return categories
 
 
+@check_import([tf_imported], ["tensorflow"])
 def load_labelmap(path):
     """Loads label map proto.
 
