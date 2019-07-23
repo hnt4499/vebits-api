@@ -9,12 +9,15 @@ To install the latest stable release of this package, simply run:
 ```
 pip install vebits_api
 ```
-Alternatively, to build the pro
+Alternatively, to build the project from source in development mode and allow the changes to take effect immediately:
+```
+git
+```
 
 ## TODO:
 - [ ] Complete README.md: Requirements, Build from source, Usage, Reference, Examples.
 - [ ] Incorporate DarkNet into this package.
 - [ ] 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE0MjUxNjY3MDhdfQ==
+eyJoaXN0b3J5IjpbMjE1Mjg1ODA3XX0=
 -->
