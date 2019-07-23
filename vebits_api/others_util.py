@@ -85,9 +85,6 @@ def check_import(is_imported, package_name):
     def wrapper(function):
         @wraps(function)
         def _wrapper(*args, **kwargs):
-            if not isinstance(is_imported, list):
-                is_imported = [is_imported]
-                package_name = [package_name]
             for x, y in zip(is_imported, package_name):
                 if not x:
                     raise ImportError("Module {} is not yet "
