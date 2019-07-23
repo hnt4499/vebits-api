@@ -65,13 +65,33 @@ def import_wrapper(import_function, package_name):
     provided package can be imported or not. This should be used to catch any
     ImportError beforehand for functions that require specific packages.
     """
-    @wraps(function)
     def wrapper(function):
+        @wraps(function)
         def _wrapper(*args, **kwargs):
             try:
                 import_function()
             except ImportError:
                 print("Cannot import package {}".format(package_name))
+            return function(*args, **kwargs)
+        return _wrapper
+    return wrapper
+
+
+def check_import(is_imported, package_name):
+    """
+    This function wraps up other functions as decorator and check whether the
+    `package_name` has been imported, given a boolean value.
+    """
+    def wrapper(function):
+        @wraps(function)
+        def _wrapper(*args, **kwargs):
+            if not isinstance(is_imported, list):
+                is_imported = [is_imported]
+                package_name = [package_name]
+            for x, y in zip(is_imported, package_name):
+                if not x:
+                    raise ImportError("Module {} is not yet "
+                                      "imported.".format(y))
             return function(*args, **kwargs)
         return _wrapper
     return wrapper
