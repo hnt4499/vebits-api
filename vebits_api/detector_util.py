@@ -35,6 +35,7 @@ pool = ThreadPool()
 
 
 # Load Tensorflow inference graph into memory
+@check_import(tf_imported, "tensorflow")
 def load_inference_graph_tf(inference_graph_path):
     # load frozen tensorflow model into memory
     detection_graph = tf.Graph()
@@ -65,6 +66,7 @@ def load_inference_graph_tf(inference_graph_path):
     return tensors
 
 
+@check_import(df_imported, "darkflow")
 def load_inference_graph_yolo(inference_graph_path, meta_path,
                               gpu_usage=0.95, confidence_threshold=0.5):
     """Load YOLO's inference graph into memory.
@@ -94,9 +96,9 @@ def load_inference_graph_yolo(inference_graph_path, meta_path,
     yolo_net = TFNet(flags)
     return {"yolo_net": yolo_net}
 
+
 # Load a frozen infrerence graph into memory
-
-
+@check_import([tf_imported, df_imported], ["tensorflow", "darkflow"])
 def load_inference_graph(inference_graph_path, meta_path=None,
                          gpu_usage=0.95, confidence_threshold=0.5):
     """Interface to load either Tensorflow or Darknet's YOLO inference graph
@@ -128,6 +130,7 @@ def load_inference_graph(inference_graph_path, meta_path=None,
                                          confidence_threshold)
 
 
+@check_import([tf_imported, df_imported], ["tensorflow", "darkflow"])
 def load_tensors(inference_graph_path, labelmap_path,
                  num_classes=None, meta_path=None,
                  gpu_usage=0.95, confidence_threshold=0.5):
@@ -172,6 +175,7 @@ def load_tensors(inference_graph_path, labelmap_path,
     return tensors
 
 
+@check_import(tf_imported, "tensorflow")
 def detect_objects_tf(imgs, tensors):
     sess = tensors["sess"]
     image_tensor = tensors["image_tensor"]
@@ -188,6 +192,7 @@ def detect_objects_tf(imgs, tensors):
     return boxes, scores, classes.astype(np.int32)
 
 
+@check_import(df_imported, "darkflow")
 def detect_objects_yolo(imgs, tensors):
     """This function makes use of multiprocessing to make predictions on batch.
 
@@ -266,6 +271,7 @@ def process_box(box, img_size_feed, img_size_orig, threshold):
     return None
 
 
+@check_import([tf_imported, df_imported], ["tensorflow", "darkflow"])
 def detect_objects(img, tensors):
     dims = img.ndim
     if dims == 3:
@@ -283,6 +289,7 @@ def detect_objects(img, tensors):
 
 
 class TFModel():
+    @check_import(tf_imported, "tensorflow")
     def __init__(self, inference_graph_path, labelmap_path,
                  confidence_threshold=0.5,
                  class_to_be_detected="all"):
@@ -324,6 +331,7 @@ class TFModel():
 
 
 class YOLOModel():
+    @check_import(df_imported, "darkflow")
     def __init__(self, inference_graph_path, labelmap_path,
                  meta_path, confidence_threshold=0.5,
                  class_to_be_detected="all", gpu_usage=0.95):
@@ -365,6 +373,7 @@ class Model():
     """
     This model wraps up TFModel and YOLOModel for the sake of simplicity.
     """
+    @check_import([tf_imported, df_imported], ["tensorflow", "darkflow"])
     def __init__(self, inference_graph_path, labelmap_path,
                  meta_path, confidence_threshold=0.5,
                  class_to_be_detected="all", gpu_usage=0.95):
