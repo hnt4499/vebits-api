@@ -550,6 +550,9 @@ class VideoStream:
                     break
         return True
 
+    def draw_count_on_frame(self, frame):
+        return vis_util.draw_number(frame, self.count)
+
     def write_frame(self, frame=None):
         """
         If `frame` is None, display the last frame grabbed.
