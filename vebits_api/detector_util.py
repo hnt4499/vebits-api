@@ -8,7 +8,9 @@ from .others_util import check_import
 
 import os
 import sys
-from threading import Thread
+import time
+from threading import Thread, Lock
+from queue import Queue
 from datetime import datetime
 from collections import defaultdict
 
@@ -420,6 +422,7 @@ class VideoStream:
         self.src = cv2.VideoCapture(src)
         self.count = -1
         self.mode = "webcam" if isinstance(src, int) else "video"
+        self.terminate = False
 
         if self.mode == "webcam":
             self.src_width = src_width
@@ -469,6 +472,7 @@ class VideoStream:
         cv2.namedWindow(self.display_name, cv2.WINDOW_NORMAL)
         cv2.resizeWindow(self.display_name, self.display_width,
                          self.display_height)
+        self.init = True
 
     def set_output_params(self, output_path, output_width=None,
                           output_height=None, resize_func=None,
@@ -522,22 +526,23 @@ class VideoStream:
         Return False if end of streaming.
         """
         self.ret, self.frame = self.src.read()
-        if self.ret: self.count += 1
-        return self.ret
+        if self.ret:
+            self.count += 1
+        else:
+            self.terminate = True
+        return self.frame
 
     def __iter__(self):
         return self
 
     def __next__(self):
-        # Grab a new frame and get the `ret` value.
-        # If it is False, terminate the loop.
-        if not self.grab():
-            if self.out is not None:
-                self.out.release()
-            self.src.release()
+        # Grab a new frame and get the `terminate` value.
+        # If it is True, terminate the loop.
+        if self.terminate:
+            self.stop()
             raise StopIteration
         else:
-            return self.frame
+            return self.grab()
 
     def display_frame(self, frame=None):
         """
@@ -557,6 +562,7 @@ class VideoStream:
         key = cv2.waitKey(self.delay)
         # If terminated
         if key == self.terminate_key:
+            self.terminate = True
             return False
         # If paused
         if key == self.pause_key:
@@ -568,6 +574,8 @@ class VideoStream:
         return True
 
     def draw_count_on_frame(self, frame):
+        if frame is None:
+            frame = self.frame
         return vis_util.draw_number(frame, self.count)
 
     def write_frame(self, frame=None):
@@ -584,20 +592,103 @@ class VideoStream:
         if self.diff:
             frame = self.resize_func(frame)
         self.out.write(frame)
-
+    # Release utilities
     def release_in(self):
         self.src.release()
 
     def release_out(self):
-        self.out,release()
+        self.out.release()
 
-    def release(self):
-        """
-        This function releases whatever can be released.
-        """
+    def stop(self):
+        # Release video i/o
         self.release_in()
         if self.out is not None:
             self.release_out()
+
+
+class MultiThreadingVideoStream(VideoStream):
+    """
+    Video streaming using multithreading.
+    """
+    def __init__(self, src, src_width=640,
+                 src_height=480, queue_size=128, num_threads=1):
+        # Multithreading and queueing
+        self.Q = Queue(maxsize=queue_size)
+        # Initialize threads
+        self.threads = []
+        self.locker = Lock()
+        for i in range(num_threads):
+            thread = CustomThread(self.grab_inf, i, self.locker)
+            thread.daemon = True
+            self.threads.append(thread)
+        # Super init
+        super().__init__(src, src_width, src_height)
+
+
+    def grab(self):
+        # Read and add frame to the queue
+        self.ret, self.frame = self.src.read()
+        if self.ret:
+            self.count += 1
+            self.Q.put(self.frame)
+        else:
+            self.terminate = True
+        return self.terminate
+
+    def grab_inf(self):
+        # Read indefinitely
+        while not self.terminate:
+            # Check if the queue is full
+            if self.Q.full():
+                time.sleep(0.1)
+            else:
+                self.grab()
+
+    def __iter__(self):
+        for thread in self.threads:
+            thread.start()
+        return self
+
+    def __next__(self):
+		# Read frame from the queue
+        # If there remains frames in queue and terminate signal is not fired.
+        if self.more() and (not self.terminate):
+            return self.Q.get()
+        else:
+            self.stop()
+            raise StopIteration
+    # Function to handle when to stop, taken from
+    #   https://github.com/jrosebr1/imutils/blob/master/imutils/video/filevideostream.py
+    def more(self):
+        # return True if there are still frames in the queue.
+        # If stream is not stopped, try to wait a moment
+        tries = 0
+        while self.Q.qsize() == 0 and not self.terminate and tries < 5:
+            time.sleep(0.1)
+            tries += 1
+
+        return self.Q.qsize() > 0
+
+    def stop(self):
+        super().stop()
+        for thread in self.threads:
+            thread.join()
+
+
+class CustomThread(Thread):
+   def __init__(self, target, thread_id, locker, **kwargs):
+      super().__init__()
+      self.thread_id = thread_id
+      self.locker = locker
+      self.func = target
+      self.func_kwargs = kwargs
+
+   def run(self):
+      # Get lock to synchronize threads
+      self.locker.acquire()
+      self.func()
+      # Free lock to release next thread
+      self.locker.release()
 
 
 # Code to thread reading camera input.
