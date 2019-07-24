@@ -11,4 +11,4 @@ from . import others_util
 from . import vis_util
 from . import xml_util
 
-__version__ = "1.1.3"
+__version__ = "1.1.4"
