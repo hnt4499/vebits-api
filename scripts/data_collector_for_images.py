@@ -1,3 +1,6 @@
+"""
+This script is deprecated and should be use with care!
+"""
 
 import os
 import cv2

@@ -1,3 +1,8 @@
+"""
+This script is deprecated and should not be used!!!
+"""
+
+
 from vebits_api import detector_util as detector_util
 import xml.etree.ElementTree as ET
 
@@ -37,7 +42,7 @@ class BBox():
 
     def get_ymax(self):
         return self.ymax
-        
+
 
 def create_xml_file(in_folder, in_filename, in_path, in_width, in_height, bbox_list):
     # create the file structure

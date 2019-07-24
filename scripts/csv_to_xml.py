@@ -1,9 +1,16 @@
-from vebits_api.bbox_util import BBoxes
-import pandas as pd
 import argparse
 import sys
 import os
+
 from tqdm import tqdm
+import pandas as pd
+
+from vebits_api.bbox_util import BBoxes
+
+DESCRIPTION = """This convert a csv file into as many *.xml files of PASCAL
+VOC formatas in the csv file.
+"""
+
 
 def main(args):
     img_dir = args.img_dir
@@ -22,7 +29,9 @@ def main(args):
 
 
 def parse_arguments(argv):
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        description=DESCRIPTION)
 
     parser.add_argument('csv_path', type=str,
         help='Path to the csv file.')
