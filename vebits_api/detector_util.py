@@ -705,6 +705,19 @@ class CustomThread(Thread):
       self.locker.release()
 
 
+class FrameQueue(Queue):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.id_queue = Queue(*args, **kwargs)
+
+    def put(self, frame, frame_count):
+        super().put(frame)
+        self.id_queue.put(frame_count)
+
+    def get(self):
+        return super().get(), self.id_queue.get()
+
+
 # Code to thread reading camera input.
 # Source : Adrian Rosebrock
 # https://www.pyimagesearch.com/2017/02/06/faster-video-file-fps-with-cv2-videocapture-and-opencv/
