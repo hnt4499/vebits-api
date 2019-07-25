@@ -636,8 +636,7 @@ class MultiThreadingVideoStream(VideoStream):
         self.threads = []
         self.locker = Lock()
         for i in range(num_threads):
-            thread = CustomThread(self.grab_inf, i, self.locker)
-            thread.daemon = True
+            thread = CustomThread(target=self.grab_inf)
             thread.start()
             self.threads.append(thread)
 
@@ -690,22 +689,22 @@ class MultiThreadingVideoStream(VideoStream):
 
 
 class CustomThread(Thread):
-   def __init__(self, target, thread_id, locker, **kwargs):
-      super().__init__()
-      self.thread_id = thread_id
-      self.locker = locker
-      self.func = target
-      self.func_kwargs = kwargs
+    """
+    This custom class is used to monitor multiple threads using IDs.
+    """
+    # Class attributes and methods
+    count = 0
+    def __new__(cls, *args, **kwargs):
+        instance = super().__new__(cls)
+        instance.id = cls.count
+        cls.count += 1
+        return instance
 
-   def run(self):
-      # Get lock to synchronize threads
-      self.locker.acquire()
-      self.func()
-      # Free lock to release next thread
-      self.locker.release()
-
-
-class FrameQueue(Queue):
+    def __init__(self, *args, verbose=1, name="", **kwargs):
+        if verbose:
+            print("Initializing {} thread ID {}...".format(name, self.id), end=" ")
+        super().__init__(*args, **kwargs)
+        print("Done")
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.id_queue = Queue(*args, **kwargs)
