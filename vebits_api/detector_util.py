@@ -666,7 +666,7 @@ class MultiThreadingVideoStream(VideoStream):
     def __next__(self):
 		# Read frame from the queue
         # If there remains frames in queue and terminate signal is not fired.
-        if self.more() and (not self.terminate):
+        if self.more():
             return self.Q.get()[0]
         else:
             self.stop()
