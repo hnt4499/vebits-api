@@ -585,10 +585,12 @@ class VideoStream:
                     break
         return True
 
-    def draw_count_on_frame(self, frame):
+    def draw_count_on_frame(self, frame, count):
         if frame is None:
             frame = self.frame
-        return vis_util.draw_number(frame, self.count)
+        if count is None:
+            count = self.count
+        return vis_util.draw_number(frame, count)
 
     def write_frame(self, frame=None):
         """
