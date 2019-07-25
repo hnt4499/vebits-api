@@ -743,6 +743,35 @@ class QueueWithID(Queue):
         return super().get(), self.id_queue.get()
 
 
+class MaxDict(dict):
+    """
+    This is similar to ordinary Python dictionary, except that it can
+    only store a limited number of key-value pairs, and it is implemented
+    to have same signatures as Queue.
+    """
+    def __init__(self, maxsize=128):
+        super().__init__()
+        self.maxsize = maxsize
+
+    def is_full(self):
+        return self.__len__() >= self.maxsize
+
+    def full(self):
+        return self.is_full()
+
+    def qsize(self):
+        return self.__len__()
+
+    def put(self, object, object_id):
+        return self.__setitem__(object_id, object)
+
+    def get(self, object_id, remove=False):
+        object = self.__getitem__(object_id)
+        if remove:
+            self.__delitem__(object_id)
+        return object
+
+
 # Code to thread reading camera input.
 # Source : Adrian Rosebrock
 # https://www.pyimagesearch.com/2017/02/06/faster-video-file-fps-with-cv2-videocapture-and-opencv/
