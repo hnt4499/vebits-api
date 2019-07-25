@@ -400,6 +400,20 @@ class Model():
         return self.model.draw_boxes_on_recent_image(self)
 
 
+def is_queueing(queue, terminate_signal,
+                num_tries=5, sleep_interval=0.1):
+    """
+    This function checks whether queueing is stopped or not.
+    Return True if there are still frames in the queue.
+    If stream is not stopped, try to wait a moment
+    """
+    tries = 0
+    while queue.qsize() == 0 and not terminate_signal and tries < num_tries:
+        time.sleep(0.1)
+        tries += 1
+    return self.Q.qsize() > 0
+
+
 class VideoStream:
     """Convenience utility to handle Camera/Video stream.
 
