@@ -1,8 +1,13 @@
-import cv2
 import os
 import sys
 import argparse
+
+import cv2
 import numpy as np
+
+DESCRIPTION = """This reads as many as videos provided and display them in
+the same displaying window.
+"""
 
 
 def main(args):
@@ -27,7 +32,9 @@ def main(args):
 
 
 def parse_arguments(argv):
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        description=DESCRIPTION)
     parser.add_argument('-v', '--video_path', type=str, nargs='+',
         help='Path to all the videos, separate by space (i.e. \' \').')
     parser.add_argument('--delay', type=int, default=60,

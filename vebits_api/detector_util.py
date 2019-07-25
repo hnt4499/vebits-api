@@ -3,30 +3,41 @@
 from . import bbox_util
 from . import im_util
 from . import labelmap_util
-from . import bbox_util
 from . import vis_util
+from .others_util import check_import
 
 import os
 import sys
-from threading import Thread
+import time
+from threading import Thread, Lock
+from multiprocessing import Process
+from queue import Queue
 from datetime import datetime
 from collections import defaultdict
 
 import numpy as np
-import tensorflow as tf
 import cv2
-
-# DarkNet/Darkflow for YOLO
+# Try importing Tensorflow
+try:
+    import tensorflow as tf
+    tf_imported = True
+except ModuleNotFoundError:
+    print("No tensorflow installation found.")
+    tf_imported = False
+# Try importing DarkNet/Darkflow for YOLO
 try:
     from darkflow.net.build import TFNet
+    df_imported = True
 except ModuleNotFoundError:
-    print("No Darkflow found.")
+    print("No Darkflow installation found.")
+    df_imported = False
 # Multiprocessing
 from multiprocessing.pool import ThreadPool
 pool = ThreadPool()
 
 
 # Load Tensorflow inference graph into memory
+@check_import([tf_imported], ["tensorflow"])
 def load_inference_graph_tf(inference_graph_path):
     # load frozen tensorflow model into memory
     detection_graph = tf.Graph()
@@ -57,6 +68,7 @@ def load_inference_graph_tf(inference_graph_path):
     return tensors
 
 
+@check_import([df_imported], ["darkflow"])
 def load_inference_graph_yolo(inference_graph_path, meta_path,
                               gpu_usage=0.95, confidence_threshold=0.5):
     """Load YOLO's inference graph into memory.
@@ -86,9 +98,9 @@ def load_inference_graph_yolo(inference_graph_path, meta_path,
     yolo_net = TFNet(flags)
     return {"yolo_net": yolo_net}
 
+
 # Load a frozen infrerence graph into memory
-
-
+@check_import([tf_imported, df_imported], ["tensorflow", "darkflow"])
 def load_inference_graph(inference_graph_path, meta_path=None,
                          gpu_usage=0.95, confidence_threshold=0.5):
     """Interface to load either Tensorflow or Darknet's YOLO inference graph
@@ -120,6 +132,7 @@ def load_inference_graph(inference_graph_path, meta_path=None,
                                          confidence_threshold)
 
 
+@check_import([tf_imported, df_imported], ["tensorflow", "darkflow"])
 def load_tensors(inference_graph_path, labelmap_path,
                  num_classes=None, meta_path=None,
                  gpu_usage=0.95, confidence_threshold=0.5):
@@ -164,6 +177,7 @@ def load_tensors(inference_graph_path, labelmap_path,
     return tensors
 
 
+@check_import([tf_imported], ["tensorflow"])
 def detect_objects_tf(imgs, tensors):
     sess = tensors["sess"]
     image_tensor = tensors["image_tensor"]
@@ -180,6 +194,7 @@ def detect_objects_tf(imgs, tensors):
     return boxes, scores, classes.astype(np.int32)
 
 
+@check_import([df_imported], ["darkflow"])
 def detect_objects_yolo(imgs, tensors):
     """This function makes use of multiprocessing to make predictions on batch.
 
@@ -258,6 +273,7 @@ def process_box(box, img_size_feed, img_size_orig, threshold):
     return None
 
 
+@check_import([tf_imported, df_imported], ["tensorflow", "darkflow"])
 def detect_objects(img, tensors):
     dims = img.ndim
     if dims == 3:
@@ -275,6 +291,7 @@ def detect_objects(img, tensors):
 
 
 class TFModel():
+    @check_import([tf_imported], ["tensorflow"])
     def __init__(self, inference_graph_path, labelmap_path,
                  confidence_threshold=0.5,
                  class_to_be_detected="all"):
@@ -316,6 +333,7 @@ class TFModel():
 
 
 class YOLOModel():
+    @check_import([df_imported], ["darkflow"])
     def __init__(self, inference_graph_path, labelmap_path,
                  meta_path, confidence_threshold=0.5,
                  class_to_be_detected="all", gpu_usage=0.95):
@@ -325,6 +343,7 @@ class YOLOModel():
 
         self.threshold = confidence_threshold
         self.cls = class_to_be_detected
+
     def detect_objects_on_single_image(self, img):
         """
         Parameters
@@ -357,6 +376,7 @@ class Model():
     """
     This model wraps up TFModel and YOLOModel for the sake of simplicity.
     """
+    @check_import([tf_imported, df_imported], ["tensorflow", "darkflow"])
     def __init__(self, inference_graph_path, labelmap_path,
                  meta_path, confidence_threshold=0.5,
                  class_to_be_detected="all", gpu_usage=0.95):
@@ -381,6 +401,20 @@ class Model():
         return self.model.draw_boxes_on_recent_image(self)
 
 
+def is_queueing(queue, terminate_signal,
+                num_tries=5, sleep_interval=0.1):
+    """
+    This function checks whether queueing is stopped or not.
+    Return True if there are still frames in the queue.
+    If stream is not stopped, try to wait a moment
+    """
+    tries = 0
+    while queue.qsize() == 0 and not terminate_signal and tries < num_tries:
+        time.sleep(0.1)
+        tries += 1
+    return self.Q.qsize() > 0
+
+
 class VideoStream:
     """Convenience utility to handle Camera/Video stream.
 
@@ -403,6 +437,7 @@ class VideoStream:
         self.src = cv2.VideoCapture(src)
         self.count = -1
         self.mode = "webcam" if isinstance(src, int) else "video"
+        self.terminate = False
 
         if self.mode == "webcam":
             self.src_width = src_width
@@ -412,35 +447,45 @@ class VideoStream:
 
         else:
             # Grab the first frame to get frame width and height
-            # and reset some values.
-            self.grab()
-            self.src_height, self.src_width = self.frame.shape[:2]
+            tmp_frame = self.src.read()[1]
+            self.src_height, self.src_width = tmp_frame.shape[:2]
             # Release and reset
             self.src.release()
             self.src = cv2.VideoCapture(src)
-            self.count = -1
 
         # Set default parameters for displaying
-        self.set_display_params("OpenCV", self.src_width, self.src_height)
+        self.set_display_params("OpenCV", self.src_width,
+                                self.src_height, init=False)
         self.out = None # No output by default
 
     def set_display_params(self, display_name,
                            display_width, display_height,
                            terminate_key=113, pause_key=32,
-                           delay=1, draw_count=False):
+                           delay=1, draw_count=False,
+                           init=False):
         """
         By default, press "q" (code: 113) to terminate displaying
         and spacebar (code: 32) to pause. Must be passed as a Unicode
         value. `delay`: number of miliseconds to wait until next frame.
         """
         self.display_name = display_name
-        cv2.namedWindow(self.display_name, cv2.WINDOW_NORMAL)
-        cv2.resizeWindow(self.display_name, display_width, display_height)
+        self.display_width = display_width
+        self.display_height = display_height
 
         self.terminate_key = terminate_key
         self.pause_key = pause_key
         self.delay = delay
         self.draw_count = draw_count
+        self.init = init
+
+        if init:
+            self.init_display()
+
+    def init_display(self):
+        cv2.namedWindow(self.display_name, cv2.WINDOW_NORMAL)
+        cv2.resizeWindow(self.display_name, self.display_width,
+                         self.display_height)
+        self.init = True
 
     def set_output_params(self, output_path, output_width=None,
                           output_height=None, resize_func=None,
@@ -494,19 +539,21 @@ class VideoStream:
         Return False if end of streaming.
         """
         self.ret, self.frame = self.src.read()
-        if self.ret: self.count += 1
-        return self.ret
+        if self.ret:
+            self.count += 1
+        else:
+            self.terminate = True
+        return self.frame
 
     def __iter__(self):
         return self
 
     def __next__(self):
-        # Grab a new frame and get the `ret` value.
-        # If it is False, terminate the loop.
-        if not self.grab():
-            if self.out is not None:
-                self.out.release()
-            self.src.release()
+        # Grab a new frame and get the `terminate` value.
+        # If it is True, terminate the loop.
+        self.grab()
+        if self.terminate:
+            self.stop()
             raise StopIteration
         else:
             return self.frame
@@ -516,6 +563,9 @@ class VideoStream:
         If `frame` is None, display the current frame grabbed. Otherwise,
         display the desired frame. Return False if terminate signal is fired.
         """
+        # Check whether displaying utility is initialized or not
+        if not self.init:
+            self.init_display()
         if frame is None:
             frame = self.frame
         # Draw frame count
@@ -526,6 +576,7 @@ class VideoStream:
         key = cv2.waitKey(self.delay)
         # If terminated
         if key == self.terminate_key:
+            self.terminate = True
             return False
         # If paused
         if key == self.pause_key:
@@ -535,6 +586,13 @@ class VideoStream:
                 if key == self.pause_key:
                     break
         return True
+
+    def draw_count_on_frame(self, frame=None, count=None):
+        if frame is None:
+            frame = self.frame
+        if count is None:
+            count = self.count
+        return vis_util.draw_number(frame, count)
 
     def write_frame(self, frame=None):
         """
@@ -550,6 +608,168 @@ class VideoStream:
         if self.diff:
             frame = self.resize_func(frame)
         self.out.write(frame)
+    # Release utilities
+    def release_in(self):
+        self.src.release()
+
+    def release_out(self):
+        self.out.release()
+
+    def stop(self):
+        # Release video i/o
+        self.release_in()
+        if self.out is not None:
+            self.release_out()
+
+
+class MultiThreadingVideoStream(VideoStream):
+    """
+    Video streaming using multithreading.
+    """
+    def __init__(self, src, src_width=640,
+                 src_height=480, queue_size=128,
+                 num_threads=1):
+        # Super init
+        super().__init__(src, src_width, src_height)
+        # Multithreading and queueing
+        self.Q = QueueWithID(maxsize=queue_size)
+        # Initialize threads
+        self.threads = []
+        self.locker = Lock()
+        for i in range(num_threads):
+            thread = CustomThread(target=self.grab_inf)
+            thread.start()
+            self.threads.append(thread)
+
+    def grab(self):
+        # Read and add frame to the queue
+        self.ret, self.frame = self.src.read()
+        if self.ret:
+            self.count += 1
+            self.Q.put(self.frame, self.count)
+        else:
+            self.terminate = True
+        return self.terminate
+
+    def grab_inf(self):
+        # Read indefinitely
+        while not self.terminate:
+            # Check if the queue is full
+            if self.Q.full():
+                time.sleep(0.1)
+            else:
+                self.grab()
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+		# Read frame from the queue
+        # If there remains frames in queue and terminate signal is not fired.
+        if self.more():
+            return self.Q.get()[0]
+        else:
+            self.stop()
+            raise StopIteration
+    # Function to handle when to stop, taken from
+    #   https://github.com/jrosebr1/imutils/blob/master/imutils/video/filevideostream.py
+    def more(self):
+        # Return True if there are still frames in the queue.
+        # If stream is not stopped, try to wait a moment
+        tries = 0
+        while self.Q.qsize() == 0 and not self.terminate and tries < 5:
+            time.sleep(0.1)
+            tries += 1
+
+        return self.Q.qsize() > 0
+
+    def stop(self):
+        super().stop()
+        for thread in self.threads:
+            thread.join()
+
+
+class CustomThread(Thread):
+    """
+    This custom class is used to monitor multiple threads using IDs.
+    """
+    # Class attributes and methods
+    count = 0
+    def __new__(cls, *args, **kwargs):
+        instance = super().__new__(cls)
+        instance.id = cls.count
+        cls.count += 1
+        return instance
+
+    def __init__(self, *args, verbose=1, name="", **kwargs):
+        if verbose:
+            print("Initializing {} thread ID {}...".format(name, self.id), end=" ")
+        super().__init__(*args, **kwargs)
+        print("Done")
+
+
+class CustomProcess(Process):
+    """
+    This custom class is used to monitor multiple processes using IDs.
+    """
+    # Class attributes and methods
+    count = 0
+    def __new__(cls, *args, **kwargs):
+        instance = super().__new__(cls)
+        instance.id = cls.count
+        cls.count += 1
+        return instance
+
+    def __init__(self, *args, verbose=1, name="", **kwargs):
+        if verbose:
+            print("Initializing {} thread ID {}".format(name, self.id))
+        super().__init__(*args, **kwargs)
+
+
+class QueueWithID(Queue):
+    """
+    This consists of two queues. The first (main) queue is used to store
+    objects. The second queue is used to store object ids.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.id_queue = Queue(*args, **kwargs)
+
+    def put(self, object, object_id):
+        super().put(object)
+        self.id_queue.put(object_id)
+
+    def get(self):
+        return super().get(), self.id_queue.get()
+
+
+class MaxDict(dict):
+    """
+    This is similar to ordinary Python dictionary, except that it can
+    only store a limited number of key-value pairs, and it is implemented
+    to have same signatures as Queue.
+    """
+    def __init__(self, maxsize=128):
+        super().__init__()
+        self.maxsize = maxsize
+
+    def is_full(self):
+        return self.__len__() >= self.maxsize
+
+    def full(self):
+        return self.is_full()
+
+    def qsize(self):
+        return self.__len__()
+
+    def put(self, object, object_id):
+        return self.__setitem__(object_id, object)
+
+    def get(self, object_id, remove=False):
+        object = self.__getitem__(object_id)
+        if remove:
+            self.__delitem__(object_id)
+        return object
 
 
 # Code to thread reading camera input.

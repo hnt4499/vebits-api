@@ -159,6 +159,10 @@ def draw_boxes_on_image(img, boxes, labels_index, labelmap_dict,
 def draw_number(img, number, loc=None,
                 text_scale=1.25, color=None,
                 thickness=2):
+    """
+    This function is used mainly to draw frame number, but it is also can be
+    used to draw any text information on image.
+    """
     # If `loc` is None, automatically calculate appropriate location.
     if loc is None:
         size = cv2.getTextSize(str(number), FONT, text_scale, thickness)

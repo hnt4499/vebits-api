@@ -18,64 +18,47 @@
 
 # Import packages
 import os
+import sys
+import argparse
+import datetime
+
+from tqdm import tqdm
 import cv2
 import imutils
 import numpy as np
 import tensorflow as tf
-import sys
-import sys
-import argparse
-import datetime
-from tqdm import tqdm
-from data_collector_for_images import create_sequence
-
-
-# This is needed since the notebook is stored in the object_detection folder.
-sys.path.append("..")
 
 # Import utilites
-from vebits_api import bbox_util, detector_util, labelmap_util, xml_util, im_util
-from utils import visualization_utils as vis_util
-
+from vebits_api import bbox_util, detector_util, im_util, others_util
+from vebits_api.xml_util import create_xml_file
 
 FONT = cv2.FONT_HERSHEY_SIMPLEX
 CONFIDENCE_THRESHOLD = 0.5
 IMG_HEIGHT = 480
 IMG_WIDTH = 640
 
-
-def get_classes(class_to_be_detected, labelmap_dict):
-    if class_to_be_detected == "all":
-        return "all"
-    else:
-        return [labelmap_dict[item] for item in class_to_be_detected.split(',')]
-
-
-def get_batch_names(img_name, num):
-    def f(suffix):
-        name, ext = os.path.splitext(img_name)
-        return name + "_" + str(suffix) + ext
-
-    return [f(i) for i in range(num)]
-
-
-def save_imgs(imgs, img_save_paths):
-    for i in range(len(img_save_paths)):
-        cv2.imwrite(img_save_paths[i], imgs[i])
+DESCRIPTION="""This script loads Object Detection API's model(s) (up to two),
+makes predictions on images provided and save annotated images as well as
+their labels to *.xml files. Each model can specifically be used to predict
+specific classes.
+"""
 
 
 def load_tensors(inference_graph_path,
                  labelmap_path,
                  num_classes,
                  class_to_be_detected):
-
+    """
+    This function extends `vebits_api.bbox_util.load_tensors` by providing one
+    more metadata: class to be detected.
+    """
     tensors = detector_util.load_tensors(
                                 inference_graph_path,
                                 labelmap_path,
                                 num_classes)
-    class_to_be_detected = get_classes(class_to_be_detected, tensors["labelmap_dict"])
+    class_to_be_detected = others_util.get_classes(class_to_be_detected,
+                                                   tensors["labelmap_dict"])
     tensors["class_to_be_detected"] = class_to_be_detected
-
     return tensors
 
 
@@ -86,25 +69,21 @@ def get_filtered_boxes(boxes,
                        labelmap_dict_inverse,
                        confidence_threshold,
                        img_size):
-
-    fi, boxes_filtered = bbox_util.filter_boxes(
+    # Filter unwanted boxes
+    boxes, scores, classes = bbox_util.filter_boxes(
                                     boxes=boxes,
                                     scores=scores,
                                     classes=classes,
                                     cls=class_to_be_detected,
                                     confidence_threshold=confidence_threshold,
-                                    img_size=img_size,
-                                )
-
-    classes_filtered = classes[fi]
-
+                                    img_size=img_size)
+    # Convert to BBox format
     bboxes = []
-    for j in range(boxes_filtered.shape[0]):
+    for i in range(boxes.shape[0]):
         bboxes.append(bbox_util.BBox(
-                             labelmap_dict_inverse[classes_filtered[j]],
-                             boxes_filtered[j])
+                             labelmap_dict_inverse[classes[i]],
+                             boxes[i])
                      )
-
     return bboxes
 
 
@@ -120,25 +99,23 @@ def process_frame_batch(frames,
     if num_transform > 0:
         frames_aug = sequence(images=frames * num_transform)
     else: frames_aug = []
-
-    # Update number of images generated.
+    # Get names for the whole batch
     img_save_paths_aug = (
-        get_batch_names(img_save_paths[i], num_transform)
+        others_util.get_batch_names(img_save_paths[i], num_transform)
         for i in range(len(frames))
     )
-
     for img_aug_names in zip(*img_save_paths_aug):
         img_save_paths.extend(list(img_aug_names))
-
+    # Get all images (un-augmented and augmented ones)
     frames.extend(frames_aug)
     frames = np.array(frames)
-
+    # Perform detection
     boxes, scores, classes = detector_util.detect_objects(frames, tensors)
     if tensors_2 is not None:
         boxes_2, scores_2, classes_2 = detector_util.detect_objects(frames, tensors_2)
 
     frame_height, frame_width = frames.shape[1:3]
-
+    # Filter out unwanted boxes
     for i in range(boxes.shape[0]):
         bboxes = get_filtered_boxes(
                             boxes=boxes[i],
@@ -161,18 +138,19 @@ def process_frame_batch(frames,
                                 img_size=(frame_height, frame_width),
                             )
             bboxes = bboxes + bboxes_2
-
+        # Generate *.xml files simultaneously
         xml_util.create_xml_file(
             img_save_paths[i],
             frame_width,
             frame_height,
             bboxes,
         )
-
-        save_imgs(frames, img_save_paths)
+        # Save images
+        im_util.save_imgs(frames, img_save_paths)
 
 
 def main(args):
+    # Load tensors
     tensors = load_tensors(
                     args.inference_graph_path,
                     args.labelmap_path,
@@ -192,7 +170,7 @@ def main(args):
     output_dirs = args.output_dirs
     batch_size = args.batch_size
 
-    sequence = create_sequence()
+    sequence = im_util.create_sequence()
     num_transform = args.num_transform
 
     num_frame_processed = 0
@@ -210,18 +188,17 @@ def main(args):
 
                 # Update the variables.
                 num_frame_processed += 1
-
+                # Read image and resize to desired size
                 img_path = os.path.join(img_dir, img_name)
                 img = cv2.imread(img_path)
                 img = im_util.resize_padding(img, (IMG_HEIGHT, IMG_WIDTH))
 
                 img_save_paths.append(os.path.join(output_dir, img_name))
                 frames.append(img)
-
-                # Wait until batch_size number of frames are grabbed.
+                # Wait until batch_size number of frames are grabbed
                 if num_frame_processed % batch_size != 0:
                     continue
-
+                # Process grabbed batch
                 process_frame_batch(frames=frames,
                                     img_save_paths=img_save_paths,
                                     num_transform=num_transform,
@@ -235,7 +212,8 @@ def main(args):
 
                 frames = []
                 img_save_paths = []
-
+        # At the end of the loop, there might be some images that
+        # have not been processed
         if frames != []:
             process_frame_batch(frames=frames,
                                 img_save_paths=img_save_paths,
@@ -248,14 +226,16 @@ def main(args):
             num_img_generated += len(img_save_paths)
 
         print('>>> Results: {} images generated to {}'.format(num_img_generated, output_dir))
-
+        # Reset parameters to continue processing with the next folders
         frames = []
         img_save_paths = []
         num_img_generated = 0
 
 
 def parse_arguments(argv):
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        description=DESCRIPTION)
 
     parser.add_argument('inference_graph_path', type=str,
         help='Path to the first inference graph.')

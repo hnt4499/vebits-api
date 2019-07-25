@@ -1,11 +1,16 @@
 import os
 import glob
-import pandas as pd
-from PIL import Image
 import datetime
 import sys
 import argparse
+
 from tqdm import tqdm
+import pandas as pd
+from PIL import Image
+
+DESCRIPTION = """This crops input image(s) by the values specified
+for top, bottom, left, right edges.
+"""
 
 
 def convert(x):
@@ -18,8 +23,8 @@ def main(args):
     # Check validity
     valid = [isinstance(i, int) for i in margin]
     if 0 < sum(valid) < 4:
-        raise ValueError("All the values must be of the same instance (integer or float).")
-
+        raise ValueError("All the values must be of the "
+                         "same instance (integer or float).")
 
     img_dir = args.img_dir
     img_list = os.listdir(img_dir)
@@ -33,21 +38,25 @@ def main(args):
 
         # If percentage
         if sum(valid) == 0:
-            margin_img = [margin[0] * width, margin[1] * height, margin[2] * width, margin[3] * height]
+            margin_img = [margin[0] * width, margin[1] * height,
+                          margin[2] * width, margin[3] * height]
 
-        else: margin_img = margin
+        else:
+            margin_img = margin
+        # Perform cropping
         img_aug = img.crop((margin_img[0],
                             margin_img[1],
                             width - margin_img[2],
                             height - margin_img[3])
                         ).resize((width, height), Image.ANTIALIAS)
 
-        unique_id = datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')
-        img_aug.save(os.path.join(dest_dir, unique_id + ".jpg"))
+        img_aug.save(os.path.join(dest_dir, img_name))
 
 
 def parse_arguments(argv):
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        description=DESCRIPTION)
 
     parser.add_argument('img_dir', type=str,
         help='Directory to all images.')

@@ -54,7 +54,8 @@ def filter_boxes(boxes, scores, classes, classes_to_keep,
     This function is used to process bounding boxes returned by Tensorflow
     Object Detection API only.
     """
-    mask = get_mask(boxes, scores, classes, classes_to_keep, confidence_threshold)
+    mask = get_mask(boxes, scores, classes,
+                    classes_to_keep, confidence_threshold)
     boxes = boxes[mask]
     scores = scores[mask]
     classes = classes[mask]
