@@ -10,6 +10,7 @@ import os
 import sys
 import time
 from threading import Thread, Lock
+from multiprocessing import Process
 from queue import Queue
 from datetime import datetime
 from collections import defaultdict
@@ -708,6 +709,23 @@ class CustomThread(Thread):
 
 
 class CustomProcess(Process):
+    """
+    This custom class is used to monitor multiple processes using IDs.
+    """
+    # Class attributes and methods
+    count = 0
+    def __new__(cls, *args, **kwargs):
+        instance = super().__new__(cls)
+        instance.id = cls.count
+        cls.count += 1
+        return instance
+
+    def __init__(self, *args, verbose=1, name="", **kwargs):
+        if verbose:
+            print("Initializing {} thread ID {}".format(name, self.id))
+        super().__init__(*args, **kwargs)
+
+
 class QueueWithID(Queue):
     """
     This consists of two queues. The first (main) queue is used to store
