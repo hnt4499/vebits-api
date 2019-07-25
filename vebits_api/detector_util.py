@@ -550,11 +550,12 @@ class VideoStream:
     def __next__(self):
         # Grab a new frame and get the `terminate` value.
         # If it is True, terminate the loop.
+        self.grab()
         if self.terminate:
             self.stop()
             raise StopIteration
         else:
-            return self.grab()
+            return self.frame
 
     def display_frame(self, frame=None):
         """
