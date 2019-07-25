@@ -631,7 +631,7 @@ class MultiThreadingVideoStream(VideoStream):
         # Super init
         super().__init__(src, src_width, src_height)
         # Multithreading and queueing
-        self.Q = FrameQueue(maxsize=queue_size)
+        self.Q = QueueWithID(maxsize=queue_size)
         # Initialize threads
         self.threads = []
         self.locker = Lock()
@@ -705,13 +705,21 @@ class CustomThread(Thread):
             print("Initializing {} thread ID {}...".format(name, self.id), end=" ")
         super().__init__(*args, **kwargs)
         print("Done")
+
+
+class CustomProcess(Process):
+class QueueWithID(Queue):
+    """
+    This consists of two queues. The first (main) queue is used to store
+    objects. The second queue is used to store object ids.
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.id_queue = Queue(*args, **kwargs)
 
-    def put(self, frame, frame_count):
-        super().put(frame)
-        self.id_queue.put(frame_count)
+    def put(self, object, object_id):
+        super().put(object)
+        self.id_queue.put(object_id)
 
     def get(self):
         return super().get(), self.id_queue.get()
