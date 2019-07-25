@@ -625,26 +625,27 @@ class MultiThreadingVideoStream(VideoStream):
     Video streaming using multithreading.
     """
     def __init__(self, src, src_width=640,
-                 src_height=480, queue_size=128, num_threads=1):
+                 src_height=480, queue_size=128,
+                 num_threads=1):
+        # Super init
+        super().__init__(src, src_width, src_height)
         # Multithreading and queueing
-        self.Q = Queue(maxsize=queue_size)
+        self.Q = FrameQueue(maxsize=queue_size)
         # Initialize threads
         self.threads = []
         self.locker = Lock()
         for i in range(num_threads):
             thread = CustomThread(self.grab_inf, i, self.locker)
             thread.daemon = True
+            thread.start()
             self.threads.append(thread)
-        # Super init
-        super().__init__(src, src_width, src_height)
-
 
     def grab(self):
         # Read and add frame to the queue
         self.ret, self.frame = self.src.read()
         if self.ret:
             self.count += 1
-            self.Q.put(self.frame)
+            self.Q.put(self.frame, self.count)
         else:
             self.terminate = True
         return self.terminate
@@ -659,22 +660,20 @@ class MultiThreadingVideoStream(VideoStream):
                 self.grab()
 
     def __iter__(self):
-        for thread in self.threads:
-            thread.start()
         return self
 
     def __next__(self):
 		# Read frame from the queue
         # If there remains frames in queue and terminate signal is not fired.
         if self.more() and (not self.terminate):
-            return self.Q.get()
+            return self.Q.get()[0]
         else:
             self.stop()
             raise StopIteration
     # Function to handle when to stop, taken from
     #   https://github.com/jrosebr1/imutils/blob/master/imutils/video/filevideostream.py
     def more(self):
-        # return True if there are still frames in the queue.
+        # Return True if there are still frames in the queue.
         # If stream is not stopped, try to wait a moment
         tries = 0
         while self.Q.qsize() == 0 and not self.terminate and tries < 5:
