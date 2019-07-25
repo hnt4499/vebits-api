@@ -446,13 +446,11 @@ class VideoStream:
 
         else:
             # Grab the first frame to get frame width and height
-            # and reset some values.
-            self.grab()
-            self.src_height, self.src_width = self.frame.shape[:2]
+            tmp_frame = self.src.read()[1]
+            self.src_height, self.src_width = tmp_frame.shape[:2]
             # Release and reset
             self.src.release()
             self.src = cv2.VideoCapture(src)
-            self.count = -1
 
         # Set default parameters for displaying
         self.set_display_params("OpenCV", self.src_width,
