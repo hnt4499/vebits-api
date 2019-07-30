@@ -34,8 +34,7 @@ try:
 except ModuleNotFoundError:
     print("No Darkflow installation found.")
     df_imported = False
-# Multiprocessing
-from multiprocessing.pool import ThreadPool
+
 pool = ThreadPool()
 
 
