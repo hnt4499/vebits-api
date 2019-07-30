@@ -9,11 +9,14 @@ from .others_util import check_import
 import os
 import sys
 import time
-from threading import Thread, Lock
-from multiprocessing import Process
-from queue import Queue
 from datetime import datetime
 from collections import defaultdict
+# Multiprocessing
+from threading import Thread, Lock
+from multiprocessing import Process
+from multiprocessing.pool import ThreadPool
+from concurrent.futures import ThreadPoolExecutor
+from queue import Queue
 
 import numpy as np
 import cv2
