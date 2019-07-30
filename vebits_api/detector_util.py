@@ -778,6 +778,9 @@ class MaxDict(dict):
         return self.__len__() >= self.maxsize
 
     def full(self):
+        """
+        Alternative for `is_full` function.
+        """
         return self.is_full()
 
     def qsize(self):
