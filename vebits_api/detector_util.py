@@ -710,6 +710,25 @@ class CustomThread(Thread):
         print("Done")
 
 
+class CustomThreadPool(ThreadPoolExecutor):
+    """
+    This custom class is used to monitor multiple threadpool using IDs.
+    """
+    # Class attributes and methods
+    count = 0
+    def __new__(cls, *args, **kwargs):
+        instance = super().__new__(cls)
+        instance.id = cls.count
+        cls.count += 1
+        return instance
+
+    def __init__(self, *args, verbose=1, name="", **kwargs):
+        if verbose:
+            print("Initializing {} thread ID {}...".format(name, self.id), end=" ")
+        super().__init__(*args, **kwargs)
+        print("Done")
+
+
 class CustomProcess(Process):
     """
     This custom class is used to monitor multiple processes using IDs.
