@@ -793,6 +793,82 @@ class MaxDict(dict):
         return object
 
 
+class _ImageInGrid:
+    def __init__(self, top_left, bottom_right):
+        """
+        position: position (x, y) of image on the grid
+        """
+        self.top_left = top_left
+        self.bottom_right = bottom_right
+
+    def get_inference(self, bboxes, *args):
+        """
+        Get inference for one image given its position on grid
+        bboxes: ndarray
+        *args: can be classes or scores
+        """
+        mask_min = bboxes[:, :2] >= self.top_left
+        mask_max = bboxes[:, 2:] <= self.bottom_right
+        mask = np.prod(np.hstack((mask_min, mask_max)),
+                       axis=1, dtype=np.bool)
+        bboxes = bboxes[mask] - np.array(self.top_left * 2)
+        if len(args) == 0:
+            return bboxes
+        else:
+            args = [arg[mask] for arg in args]
+            return (bboxes, *args)
+
+
+class ImagesStacker:
+    def __init__(self, img_size, border_size, num_imgs):
+        """
+        Each argument is a tuple containing two values along x and y axis, respectively.
+        """
+        self.img_w, self.img_h = img_size
+        self.border_x, self.border_y = border_size
+        self.num_x, self.num_y = num_imgs
+        # Calculate parameters of the whole grid
+        self._width = self.num_x * self.img_w + (self.num_x - 1) * self.border_x
+        self._height = self.num_y * self.img_h + (self.num_y - 1) * self.border_y
+        # Default parameters
+        self._num_imgs_added = 0
+        self.current_x, self.current_y = (0, 0)
+        self._imgs_data = []
+        # Initialize grid
+        self.grid = np.zeros((self._height, self._width, 3), dtype=np.uint8)
+
+    def add_img(self, img):
+        assert img.shape[:2] == (self.img_h, self.img_w)
+        assert self._num_imgs_added < self.num_x * self.num_y
+        top_left = (self.current_x, self.current_y)
+        bottom_right = (self.current_x + self.img_w,
+                        self.current_y + self.img_h)
+        self.grid[top_left[1]:bottom_right[1],
+                  top_left[0]:bottom_right[0],
+                  :] = img
+        self._num_imgs_added += 1
+        self._imgs_data.append(_ImageInGrid(top_left, bottom_right))
+        if self._num_imgs_added % self.num_x == 0:
+            self.current_x = 0
+            self.current_y += self.img_h + self.border_y
+        else:
+            self.current_x += self.img_w + self.border_x
+
+    def add_imgs(self, imgs):
+        for img in imgs:
+            self.add_img(img)
+
+    def get_inferences(self, bboxes, *args):
+        """
+        Return a list, each element is a ndarray representing bboxes of a image.
+        """
+        if len(args) == 0:
+            return [img.get_inference(bboxes) for img in self._imgs_data]
+        else:
+            l = [img.get_inference(bboxes, *args) for img in self._imgs_data]
+        return tuple(zip(*l))
+
+
 # Code to thread reading camera input.
 # Source : Adrian Rosebrock
 # https://www.pyimagesearch.com/2017/02/06/faster-video-file-fps-with-cv2-videocapture-and-opencv/
